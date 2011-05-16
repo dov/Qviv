@@ -1,0 +1,20 @@
+#+STARTUP: hidestars showall
+* <2011-05-10 Tue>
+** Scaling and zooming
+[[scale-and-offset.svg]]
+
+  - Since QImage does not support scaling and cropping in one atomic command this must be done in the following two commands:
+    - scale the s_copy_w area by the scale factor
+    - copy and crop while ignoring the red areas.
+* <2011-05-16 Mon>
+** Done
+   - Fixed repaint bug that stopped scrolling from working.
+   - Added mouse scroll event and keyboards event.
+   - Added several more zoom functions from gtkimageviewer.
+** Bugs
+   - [ ] There is an offset bug visible at high zoom ratios. Probably due to an error in the calculation of offsets in paintEvent.
+** Todo
+   - [ ] Figure out how to support scroll bars.
+   - [ ] Check if empty canvas without underlying image works.
+   - [ ] Start working overlay.
+

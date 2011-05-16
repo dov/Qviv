@@ -25,6 +25,12 @@ public:
     double current_scale_y;
     int current_x0;
     int current_y0;
+    int scroll_width;
+    int scroll_height;
+    double scroll_min_x;
+    double scroll_min_y;
+    double scroll_max_x;
+    double scroll_max_y;
     bool do_flip_horizontal;
     bool do_flip_vertical;
     bool frozen;
@@ -35,18 +41,15 @@ public:
     bool is_mouse_scrolling;
     int last_pan_anchor_x;
     int last_pan_anchor_y;
+    bool first_time; // Used in resize to fill image on first resize
 
     int view_changed(int do_force,
                      double scale_x,
                      double scale_y,
                      double x0,
                      double y0);
-};
 
-QSize QvivImageViewer::sizeHint() const
-{
-    return QSize(400, 200);
-}
+};
 
 QvivImageViewer::QvivImageViewer(QWidget *parent,
                                  QImage image)
@@ -57,6 +60,8 @@ QvivImageViewer::QvivImageViewer(QWidget *parent,
     d = new Priv;
     d->widget = this;
     d->image = image;
+    d->scroll_width = image.width();
+    d->scroll_height = image.height();
     d->current_scale_x = 1;
     d->current_scale_y = 1;
     d->current_x0 = 0;
@@ -71,12 +76,23 @@ QvivImageViewer::QvivImageViewer(QWidget *parent,
     d->is_mouse_scrolling = false;
     d->last_pan_anchor_x = -1;
     d->last_pan_anchor_y = -1;
+    d->scroll_min_x=0;
+    d->scroll_min_y=0;
+    d->scroll_max_x = image.width();
+    d->scroll_max_y = image.height();
+    d->first_time = true;
+
     setMouseTracking(true);
 }
 
 QvivImageViewer::~QvivImageViewer()
 {
     delete d;
+}
+
+QSize QvivImageViewer::sizeHint() const
+{
+    return QSize(d->image.width(), d->image.height());
 }
 
 // See: http://doc.trolltech.com/4.5/painting-basicdrawing.html
@@ -89,6 +105,7 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
     int exp_y0 = evt->rect().y();
     int w = evt->rect().width();
     int h = evt->rect().height();
+    printf("expose %d %d %d %d\n", exp_x0, exp_y0, w,h);
     double scale_x = d->current_scale_x;
     double scale_y = d->current_scale_y;
     int exp_x1 = exp_x0 + w;
@@ -340,14 +357,14 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
 
         if (copy_w > 0 && copy_h > 0) {
             // Where to copy from taking margin into account
-            int src_offs_x = (int)floor(offs_x/scale_x);
-            int src_offs_y = (int)floor(offs_y/scale_y);
-            int end_offs_x = (int)ceil((offs_x+copy_w)/scale_x);
-            int end_offs_y = (int)ceil((offs_y+copy_h)/scale_y);
+            int src_offs_x = (int)floor(-offs_x/scale_x);
+            int src_offs_y = (int)floor(-offs_y/scale_y);
+            int end_offs_x = (int)ceil((-offs_x+copy_w)/scale_x);
+            int end_offs_y = (int)ceil((-offs_y+copy_h)/scale_y);
 
             // The extra offset we need to transpose after scaling
-            int copy_start_offs_x = (int)(offs_x - src_offs_x * scale_x);
-            int copy_start_offs_y = (int)(offs_y - src_offs_y * scale_y);
+            int copy_start_offs_x = (int)(-offs_x - src_offs_x * scale_x);
+            int copy_start_offs_y = (int)(-offs_y - src_offs_y * scale_y);
             int copy_scale_width = (int)((end_offs_x - src_offs_x) * scale_x);
             int copy_scale_height = (int)((end_offs_y - src_offs_y)*scale_y);
 
@@ -357,6 +374,7 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
                                        src_offs_y,
                                        end_offs_x-src_offs_x,
                                        end_offs_y-src_offs_y);
+            printf("copy: src_offs_x src_offs_y scale_x scale_y=%d %d %f %f\n",src_offs_x, src_offs_y,scale_x,scale_y);
             img_scaled = img_scaled.scaled(copy_scale_width,
                                            copy_scale_height);
             img_scaled = img_scaled.copy(copy_start_offs_x,
@@ -448,14 +466,14 @@ void QvivImageViewer::mousePressEvent (QMouseEvent *event)
 
     printf("button=%d\n",event->button());
     if (event->button() == 1)
-        this->zoom_in((int)x, (int)y, 1.1);
+        this->zoom_in((int)x, (int)y, 2);
     else if (event->button() == 4) {
         d->is_mouse_scrolling = true;
         d->last_pan_anchor_x = x;
         d->last_pan_anchor_y = y;
     }
-    else if (event->button() == 3)
-        this->zoom_out((int)x, (int)y, 1.1);
+    else if (event->button() == 2)
+        this->zoom_out((int)x, (int)y, 2);
   
 }
 
@@ -513,6 +531,7 @@ QvivImageViewer::Priv::view_changed(int do_force,
                                     double y0)
 {
   QRect expose_rect;
+  int render_width, render_height;
 
   DBG2(g_print("force sx sy x0 y0 = %d %f %f %f %f\n",
 	       do_force, scale_x, scale_y, x0, y0));
@@ -523,118 +542,115 @@ QvivImageViewer::Priv::view_changed(int do_force,
   else if (this->min_zoom > 0 && scale_x < this->min_zoom && scale_y < this->min_zoom)
       return 0;
 
-#if 0
   /* Clip the request */
-  if (im
+  if (this->image.width()
       || (this->scroll_width > 0 && this->scroll_height > 0)
       ) {
-        int cwidth = this->canvas_width;
-        int cheight = this->canvas_height;
-        double height, width;
+    int cwidth = widget->size().width();
+    int cheight = widget->size().height();
         
-        width = this->scroll_width;
-        height = this->scroll_height;
+    double width = this->scroll_width;
+    double height = this->scroll_height;
         
-        if (im && width*scale_x > cwidth)
-            render_width = cwidth;
-        else
-            render_width = (int)(width * scale_x);
+    if (width*scale_x > cwidth)
+        render_width = cwidth;
+    else
+        render_width = (int)(width * scale_x);
         
-        if (im && height*scale_y > cheight)
-            render_height = cheight;
-        else
-            render_height = (int)(height * scale_y);
+    if (height*scale_y > cheight)
+        render_height = cheight;
+    else
+        render_height = (int)(height * scale_y);
         
-        // Clip only for images
-        if (im) {
-            if (render_width < cwidth)
-                x0 = -(cwidth - render_width)/2;
-            else if (x0 + render_width > width*scale_x)
-                x0 = width*scale_x - render_width;
-            else if (x0<0)
-                x0 = 0;
+    // Clip only for images
+    if (this->image.width()) {
+      if (render_width < cwidth)
+          x0 = -(cwidth - render_width)/2;
+      else if (x0 + render_width > width*scale_x)
+          x0 = width*scale_x - render_width;
+      else if (x0<0)
+          x0 = 0;
             
-            if (im && render_height < cheight)
-                y0 = -(cheight - render_height)/2;
-            else if (y0 + render_height > height*scale_y)
-                y0 = height*scale_y - render_height;
-            else if (y0<0)
-                y0 = 0;
-        }
+      if (image.width() && render_height < cheight)
+          y0 = -(cheight - render_height)/2;
+      else if (y0 + render_height > height*scale_y)
+          y0 = height*scale_y - render_height;
+      else if (y0<0)
+          y0 = 0;
+    }
   }
-#endif
   
   /* If scale is the same, then the image has only been scrolled,
      and we only need to update the exposed areas.
-   */
+  */
   if (!do_force
       && scale_x == this->current_scale_x
       && scale_y == this->current_scale_y
       ) {
-      double dx = (x0 - this->current_x0);
-      double dy = (y0 - this->current_y0);
+    double dx = (x0 - this->current_x0);
+    double dy = (y0 - this->current_y0);
 
-      // Scroll in opposite direction if we are flipping
-      if (this->do_flip_horizontal)
+    // Scroll in opposite direction if we are flipping
+    if (this->do_flip_horizontal)
         dx = -dx;
-      if (this->do_flip_vertical)
+    if (this->do_flip_vertical)
         dy = -dy;
-      int src_x = (dx < 0) ? 0 : dx;
-      int src_y = (dy < 0) ? 0 : dy;
-      int dst_x = (dx < 0) ? -dx : 0;
-      int dst_y = (dy < 0) ? -dy : 0;
+    int src_x = (dx < 0) ? 0 : dx;
+    int src_y = (dy < 0) ? 0 : dy;
+    int dst_x = (dx < 0) ? -dx : 0;
+    int dst_y = (dy < 0) ? -dy : 0;
 
-      this->current_x0 = x0;
-      printf("view changed current_x0 dx y0 dy= %d %d %d %d\n",
-             (int)this->current_x0, (int)dx,
-             (int)this->current_y0, (int)dy
-             );
-      this->current_y0 = y0;
+    this->current_x0 = x0;
+    this->current_y0 = y0;
+    printf("view changed current_x0 dx y0 dy= %d %d %d %d\n",
+           (int)this->current_x0, (int)dx,
+           (int)this->current_y0, (int)dy
+           );
 
-      /* Scroll visible region */
+    /* Scroll visible region */
 #if 0
-      int w = widget->size().width() - abs(dx);
-      int h = widget->size().height() - abs(dy);
-      QRectF targetRect(dst_x,dst_y,w,h);
-      QRectF sourceRect(src_x,src_y,w,h);
-      QPainter painter(widget);
-      painter.drawImage(targetRect, *widget, sourceRect);
+    int w = widget->size().width() - abs(dx);
+    int h = widget->size().height() - abs(dy);
+    QRectF targetRect(dst_x,dst_y,w,h);
+    QRectF sourceRect(src_x,src_y,w,h);
+    QPainter painter(widget);
+    painter.drawImage(targetRect, *widget, sourceRect);
 #endif
-      printf("scroll: %d,%d\n", dst_x-src_x,dst_y-src_y);
-      widget->scroll(dst_x-src_x,dst_y-src_y);
+    printf("scroll: %d,%d\n", dst_x-src_x,dst_y-src_y);
+    widget->scroll(dst_x-src_x,dst_y-src_y);
 
-      DBG2(g_print("Filling in: dx dy = %d %d\n", dx, dy));
-      /* And fill in the new areas */
-      if (dx) {
-          int x = (dx < 0) ? 0 : widget->size().width() - dx;
-          int width = abs(dx);
-	  int height = widget->size().height();
+    DBG2(g_print("Filling in: dx dy = %d %d\n", dx, dy));
+    /* And fill in the new areas */
+    if (dx) {
+      int x = (dx < 0) ? 0 : widget->size().width() - dx;
+      int width = abs(dx);
+      int height = widget->size().height();
 
-          widget->update(x,0,width,height);
-      }
-      if (dy) {
-	  int y = (dy < 0) ? 0 : widget->size().height() - dy;
-          int width = widget->size().width();
-          int height = abs(dy);
+      widget->update(x,0,width,height);
+    }
+    if (dy) {
+      int y = (dy < 0) ? 0 : widget->size().height() - dy;
+      int width = widget->size().width();
+      int height = abs(dy);
           
-          widget->update(0,y,width,height);
-      }
+      widget->update(0,y,width,height);
+    }
   }
   
   else if ((do_force
-      || scale_x != this->current_scale_x
-      || scale_y != this->current_scale_y
-      || x0 != this->current_x0
-      || y0 != this->current_y0))
-    {
-      /* Remember the current transform */
-      this->current_scale_x = scale_x;
-      this->current_scale_y = scale_y;
-      this->current_x0 = (int)x0;
-      this->current_y0 = (int)y0;
+            || scale_x != this->current_scale_x
+            || scale_y != this->current_scale_y
+            || x0 != this->current_x0
+            || y0 != this->current_y0))
+      {
+        /* Remember the current transform */
+        this->current_scale_x = scale_x;
+        this->current_scale_y = scale_y;
+        this->current_x0 = (int)x0;
+        this->current_y0 = (int)y0;
 
-      widget->update();
-    }
+        widget->update();
+      }
 
   return 1;
 }
@@ -711,9 +727,9 @@ QvivImageViewer::zoom_in(int x, int y, double factor)
   }
   
   if (x<0)
-      x = this->size().width();
+      x = this->size().width()/2;
   if (y<0)
-      y = this->size().height();
+      y = this->size().height()/2;
   
   this->zoom_around_fixed_point(zoom_factor[0],
                                 zoom_factor[1],
@@ -769,4 +785,89 @@ QvivImageViewer::zoom_translate(int dx, int dy)
                     d->current_x0+dx,
                     d->current_y0+dy);
     return 1;
+}
+
+int QvivImageViewer::zoom_to_box(double world_min_x,
+                                 double world_min_y,
+                                 double world_max_x,
+                                 double world_max_y,
+                                 double pixel_margin,
+                                 bool preserve_aspect)
+{
+    double w = d->widget->width();
+    double h = d->widget->height();
+
+    double new_scale_x = (w-2*pixel_margin)/(world_max_x-world_min_x);
+    double new_scale_y = (h-2*pixel_margin)/(world_max_y-world_min_y);
+      
+    if (preserve_aspect) {
+        if (new_scale_x > new_scale_y)
+            new_scale_x = new_scale_y;
+        else
+            new_scale_y = new_scale_x;
+    }
+    // This works for both flip and not flip!
+    double new_x0 = new_scale_x*0.5*(world_max_x+world_min_x)-w/2;
+    double new_y0 = new_scale_y*0.5*(world_max_y+world_min_y)-h/2;
+
+    d->view_changed(false, new_scale_x, new_scale_y, new_x0, new_y0);
+      
+    return 0;
+}
+  
+void QvivImageViewer::zoom_fit(void)
+{
+    zoom_to_box(d->scroll_min_x,
+                d->scroll_min_y,
+                d->scroll_max_x,
+                d->scroll_max_y,
+                0,
+                true);
+}
+
+void QvivImageViewer::zoom_reset(void)
+{
+    d->view_changed(true, 1, 1, 0, 0);
+}
+
+void QvivImageViewer::resizeEvent ( QResizeEvent * /*event */)
+{
+    if (d->first_time) {
+        zoom_fit();
+        d->first_time= false;
+    }
+}
+
+void QvivImageViewer::wheelEvent (QWheelEvent *event)
+{
+    if (event->delta() < 0)
+        zoom_out(event->x(),event->y(),1.1);
+    else
+        zoom_in(-1,-1,1.1);
+}
+
+void QvivImageViewer::keyPressEvent (QKeyEvent * event)
+{
+    QString k = event->text();
+
+    if (k=="=" || k=="+")
+        zoom_in(-1, -1, 1.1);
+    else if (k==">")
+        zoom_in(-1, -1, 2);
+    else if (k=="<")
+        zoom_out(-1, -1, 2);
+    else if (k=="-")
+        zoom_out(0, 0, 1.1);
+    else if (k=="1"||k=="n")
+        zoom_reset();
+    else if (k=="f")
+        zoom_fit();
+#if 0
+    else if (k=="v")
+        set_flip(d->do_flip_horizontal,
+                 !d->do_flip_vertical);
+    else if (k=="h")
+        set_flip(!d->do_flip_horizontal,
+                 d->do_flip_vertical);
+#endif
 }

@@ -17,14 +17,24 @@ public:
     int zoom_in(int x, int y, double factor);
     int zoom_out(int x, int y, double factor);
     int zoom_translate(int dx, int dy);
+    int zoom_to_box(double world_min_x,
+                    double world_min_y,
+                    double world_max_x,
+                    double world_max_y,
+                    double pixel_margin,
+                    bool preserve_aspect) ;
+    void zoom_fit(void);
+    void zoom_reset(void);
 
 protected:
     void paintEvent(QPaintEvent * event);
+    void resizeEvent ( QResizeEvent * event );
     void mousePressEvent (QMouseEvent * event);
     void mouseReleaseEvent (QMouseEvent * event);
     void mouseMoveEvent (QMouseEvent *event);
+    void wheelEvent (QWheelEvent *event);
+    void keyPressEvent (QKeyEvent * event);
     QSize sizeHint() const;
-    QSize Resize(QResizeEvent) const;
 
 private:
     class Priv;
