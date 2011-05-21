@@ -10,10 +10,11 @@
  *
  */
 #include <stdio.h>
-#include <QvivImageViewer.h>
 #include <QApplication>
 #include <QPushButton>
 #include <QVBoxLayout>
+#include <QScrollArea>
+#include "QvivImageViewer.h"
 
 
 class MyApp : public QApplication {
@@ -28,7 +29,7 @@ private:
 
 class MyApp::Priv {
 public:
-    QvivImageViewer *w_canvas;
+    QvivImageViewer *w_imgv;
     QPushButton *w_quit;
 };
 
@@ -44,17 +45,17 @@ MyApp::MyApp(int argc, char *argv[])
     QImage *image = new QImage(argv[1]);
 
     QWidget *window = new QWidget;
-    d->w_canvas = new QvivImageViewer(window,*image);
+    d->w_imgv = new QvivImageViewer(window,*image);
 
     QVBoxLayout *layout = new QVBoxLayout;
-    layout->addWidget(d->w_canvas);
+    layout->addWidget(d->w_imgv);
     layout->setContentsMargins(0,0,0,0);
     layout->setSpacing(0);
     //    window->resize(500,400);
     window->setLayout(layout);
     window->show();
 
-    d->w_canvas->grabKeyboard(); 
+    d->w_imgv->grabKeyboard(); 
 }
 
 MyApp::~MyApp()

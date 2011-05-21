@@ -2,8 +2,9 @@
 #define QVIVIMAGEVIEWER_H
 
 #include <QWidget>
+#include <QAbstractScrollArea>
 
-class QvivImageViewer : public QWidget {
+class QvivImageViewer : public QAbstractScrollArea {
 public:
     QvivImageViewer(QWidget *parent,
                     QImage image);
@@ -34,6 +35,7 @@ protected:
     void mouseMoveEvent (QMouseEvent *event);
     void wheelEvent (QWheelEvent *event);
     void keyPressEvent (QKeyEvent * event);
+    void scrollContentsBy (int dx, int dy);
     QSize sizeHint() const;
 
 private:

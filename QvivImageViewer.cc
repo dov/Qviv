@@ -10,13 +10,14 @@
 #include <QPainter>
 #include <QPaintEvent>
 #include <QRect>
+#include <QScrollBar>
 #include <math.h>
 #include <stdio.h>
 
 #define DBG(a) a
 #define DBG2(a) 
 
-class QvivImageViewer::Priv
+class QvivImageViewer::Priv 
 {
 public:
     QvivImageViewer *widget;
@@ -53,7 +54,7 @@ public:
 
 QvivImageViewer::QvivImageViewer(QWidget *parent,
                                  QImage image)
-    : QWidget(parent)
+    : QAbstractScrollArea(parent)
 {
     setBackgroundRole(QPalette::Base);
     setAutoFillBackground(true);
@@ -99,7 +100,8 @@ QSize QvivImageViewer::sizeHint() const
 // for more examples!
 void QvivImageViewer::paintEvent(QPaintEvent *evt)
 {
-    QPainter painter(this);
+    printf("paintEvent\n");
+    QPainter painter(d->widget->viewport());
     painter.setClipRegion(evt->region());
     int exp_x0 = evt->rect().x();
     int exp_y0 = evt->rect().y();
@@ -546,8 +548,8 @@ QvivImageViewer::Priv::view_changed(int do_force,
   if (this->image.width()
       || (this->scroll_width > 0 && this->scroll_height > 0)
       ) {
-    int cwidth = widget->size().width();
-    int cheight = widget->size().height();
+    int cwidth = widget->viewport()->size().width();
+    int cheight = widget->viewport()->size().height();
         
     double width = this->scroll_width;
     double height = this->scroll_height;
@@ -608,32 +610,24 @@ QvivImageViewer::Priv::view_changed(int do_force,
            );
 
     /* Scroll visible region */
-#if 0
-    int w = widget->size().width() - abs(dx);
-    int h = widget->size().height() - abs(dy);
-    QRectF targetRect(dst_x,dst_y,w,h);
-    QRectF sourceRect(src_x,src_y,w,h);
-    QPainter painter(widget);
-    painter.drawImage(targetRect, *widget, sourceRect);
-#endif
     printf("scroll: %d,%d\n", dst_x-src_x,dst_y-src_y);
-    widget->scroll(dst_x-src_x,dst_y-src_y);
+    widget->viewport()->scroll(dst_x-src_x,dst_y-src_y);
 
     DBG2(g_print("Filling in: dx dy = %d %d\n", dx, dy));
     /* And fill in the new areas */
     if (dx) {
-      int x = (dx < 0) ? 0 : widget->size().width() - dx;
+      int x = (dx < 0) ? 0 : widget->viewport()->size().width() - dx;
       int width = abs(dx);
-      int height = widget->size().height();
+      int height = widget->viewport()->size().height();
 
-      widget->update(x,0,width,height);
+      widget->viewport()->update(x,0,width,height);
     }
     if (dy) {
-      int y = (dy < 0) ? 0 : widget->size().height() - dy;
-      int width = widget->size().width();
+      int y = (dy < 0) ? 0 : widget->viewport()->size().height() - dy;
+      int width = widget->viewport()->size().width();
       int height = abs(dy);
           
-      widget->update(0,y,width,height);
+      widget->viewport()->update(0,y,width,height);
     }
   }
   
@@ -649,8 +643,18 @@ QvivImageViewer::Priv::view_changed(int do_force,
         this->current_x0 = (int)x0;
         this->current_y0 = (int)y0;
 
-        widget->update();
+        widget->viewport()->update();
       }
+
+  // Update scrollbars
+  QSize areaSize = widget->viewport()->size();
+  
+  widget->verticalScrollBar()->setPageStep(this->scroll_width);
+  widget->horizontalScrollBar()->setPageStep(this->scroll_height);
+  widget->verticalScrollBar()->setRange(0, this->scroll_height*scale_y - areaSize.height());
+  widget->horizontalScrollBar()->setRange(0, this->scroll_width*scale_y - areaSize.width());
+  widget->horizontalScrollBar()->setValue(x0);
+  widget->verticalScrollBar()->setValue(y0);
 
   return 1;
 }
@@ -794,8 +798,8 @@ int QvivImageViewer::zoom_to_box(double world_min_x,
                                  double pixel_margin,
                                  bool preserve_aspect)
 {
-    double w = d->widget->width();
-    double h = d->widget->height();
+    double w = d->widget->viewport()->width();
+    double h = d->widget->viewport()->height();
 
     double new_scale_x = (w-2*pixel_margin)/(world_max_x-world_min_x);
     double new_scale_y = (h-2*pixel_margin)/(world_max_y-world_min_y);
@@ -870,4 +874,14 @@ void QvivImageViewer::keyPressEvent (QKeyEvent * event)
         set_flip(!d->do_flip_horizontal,
                  d->do_flip_vertical);
 #endif
+}
+
+// Map scrollbar changes to internal view changes
+void QvivImageViewer::scrollContentsBy (int /*dx*/, int /*dy*/)
+{
+    d->view_changed(false,
+                    d->current_scale_x,
+                    d->current_scale_y,
+                    horizontalScrollBar()->value(),
+                    verticalScrollBar()->value());
 }
