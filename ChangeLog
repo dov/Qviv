@@ -1,0 +1,4 @@
+2011-05-23  Dov Grobgeld  <dov.grobgeld@gmail.com>
+
+        * QvivImageViewer.h, QvivImageViewer.cpp : Added LGPL v3 licenses header.
+
