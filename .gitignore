@@ -3,3 +3,4 @@ debug/.obj/*
 /debug/test-qviv-image-viewer
 /Makefile
 /#*
+debug/.moc/*

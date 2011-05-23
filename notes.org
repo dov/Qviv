@@ -28,4 +28,6 @@ file:scale-and-offset.svg
     - [X] Connect scrollbar changes to view changes.
     - [ ] Support vertical flip.
     - [ ] Support horizontal flip.
-    
+* <2011-05-23 Mon>
+** Todo
+   - [X] Created example in QvivImage of how to draw in the imageAnnotate event.

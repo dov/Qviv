@@ -25,7 +25,7 @@
 #include <math.h>
 #include <stdio.h>
 
-#define DBG(a) a
+#define DBG(a) 
 #define DBG2(a) 
 
 class QvivImageViewer::Priv 
@@ -461,12 +461,26 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
     }
 #endif
           
-    // Image annotation signal
-
     // Add checkerboard below images that have alpha channel
     if (img_scaled.hasAlphaChannel()) {
         // TBD
     } 
+
+    // Image annotation signal
+    img_scaled = img_scaled.convertToFormat(QImage::Format_RGB32);
+    emit imageAnnotate(&img_scaled,
+                       -offs_x,-offs_y, 
+                       scale_x,
+                       scale_y);
+
+#if 0
+  QPainter painter2(&img_scaled);
+  // Use rgb color with alpha
+  QPen pen(QColor(255,0,0,255), 3);
+  painter2.setPen(pen);
+  painter2.drawEllipse(100,100,10,10);
+#endif
+
     if (!d->frozen)
         painter.drawImage(QRect(dst_x,dst_y,copy_w,copy_h),
                           img_scaled);

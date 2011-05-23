@@ -19,6 +19,7 @@
 #ifndef QVIVIMAGEVIEWER_H
 #define QVIVIMAGEVIEWER_H
 
+#include <QObject>
 #include <QImage>
 #include <QAbstractScrollArea>
 
@@ -28,7 +29,7 @@ class QvivImageViewer : public QAbstractScrollArea {
 public:
     QvivImageViewer(QWidget *parent,
                     QImage image);
-    ~QvivImageViewer();
+    virtual ~QvivImageViewer();
     int zoom_around_fixed_point(double new_scale_x,
                                 double new_scale_y,
                                 double old_x,
@@ -61,7 +62,7 @@ protected:
 signals:
     // The image annotate callback is used for drawing overlays
     // on the image.
-    void imageAnnotate(QImage image,
+    void imageAnnotate(QImage* image,
                        int x0, int y0,
                        double scale_x, double scale_y);
 
