@@ -47,6 +47,17 @@ public:
                     bool preserve_aspect) ;
     void zoom_fit(void);
     void zoom_reset(void);
+    void canv_coord_to_img_coord(double cx, double cy,
+                                 // output
+                                 double& imgx, double& imgy);
+
+    void img_coord_to_canv_coord(double imgx, double imgy,
+                                 // output
+                                 double& canvx, double& canvy);
+
+
+    // Get a pointer to the current image
+    QImage *get_image();
 
 protected:
     void paintEvent(QPaintEvent * event);
@@ -57,14 +68,21 @@ protected:
     void wheelEvent (QWheelEvent *event);
     void keyPressEvent (QKeyEvent * event);
     void scrollContentsBy (int dx, int dy);
+    void leaveEvent(QEvent *event);
     QSize sizeHint() const;
+    virtual void imageAnnotate(QImage* image,
+                               int x0, int y0,
+                               double scale_x, double scale_y);
+
 
 signals:
     // The image annotate callback is used for drawing overlays
     // on the image.
-    void imageAnnotate(QImage* image,
-                       int x0, int y0,
-                       double scale_x, double scale_y);
+    void qvivImageAnnotate(QImage* image,
+                           int x0, int y0,
+                           double scale_x, double scale_y);
+    void qvivMouseMoveEvent (QMouseEvent *event);
+    void qvivLeaveEvent (QEvent *event);
 
 private:
     class Priv;

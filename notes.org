@@ -31,3 +31,33 @@ file:scale-and-offset.svg
 * <2011-05-23 Mon>
 ** Todo
    - [X] Created example in QvivImage of how to draw in the imageAnnotate event.
+* <2011-05-31 Tue>
+** Signal woes 
+   - [X] Why can't ~test-qviv-image-viewer.cc~ connect to the signal ~mouseMoveEvent(QMouseEvent*)~. Worked around it by introducing a signal of my own ~qvivMouseMoveEvent()~ that just relays this signal. *Answer*: There is a difference between events that may be overloaded and signals that may be received. The ~mouseMoveEvent()~ is an event, but since my test program is not inheriting from it, it can not catch the signal. The solution is to create a signal in my widget and translate the event into a signal.
+   - Mouse motion event with relay works.
+   - [X] Create a tooltip.
+   - [X] Make tooltip change position with mouse motion.
+   - [X] Change tooltip contents with mouse motion.
+   - [X] How to make the size of the tooltip window fit the text? How do you get the natural size of a text label. Test adjustSize() that I found on the net
+   - [X] Change the label background to Yellow. 
+   - [X] Make label popdown on widget focus leave and show in motion handle.
+   - [ ] Implement ~CanvasToImg()~ and ~ImgToCanvas()~
+   - [ ] Data structure for giv data.
+   - [ ] Start implemenatino of =QvivWidget= based on the reference implementation in ~test-qviv-image-viewer~. 
+* <2011-06-06 Mon>
+** Notes
+   - [ ] Something is wrong with the position as seen by an example program drawing a circle at (0,0). Make sure it is always drawn correctly! What is the difference between Qviv and Giv?
+   - [X] Start of QvivWidget.
+     - [X] Override signals.
+     - [X] Balloon support.
+   - [X] Implement ~CanvasToImg()~ and ~ImgToCanvas()~
+   - [ ] Changed drawing of circles to use (x0,y0,size_x,size_y) coordinates.
+** Drawing sub-pixel position
+   - Annotation and motion are ok.
+   - [ ] Pixmap drawing is not accurate.
+   - [ ] Spurious annotations drawn. Why?
+   - [ ] Investigated image and calculations for sub pixel copying. Looks ok. So what is wrong?
+   - [X] If widget is constraint to two powers, it works.
+   - [ ] Check arithmetics rounding errors.
+     
+   

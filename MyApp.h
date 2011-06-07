@@ -4,6 +4,8 @@
 #include <QApplication>
 #include <QImage>
 
+class QMouseEvent;
+
 class MyApp : public QApplication {
   Q_OBJECT
 
@@ -13,7 +15,8 @@ public:
   
   public slots:
     void MyImageAnnotate(QImage*, int, int, double, double);
-
+    void MyMouseMoveEvent (QMouseEvent *event);
+    void MyLeaveEvent(QEvent *event);
 
 private:
     class Priv;

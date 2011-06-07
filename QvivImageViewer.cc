@@ -111,14 +111,14 @@ QSize QvivImageViewer::sizeHint() const
 // for more examples!
 void QvivImageViewer::paintEvent(QPaintEvent *evt)
 {
-    printf("paintEvent\n");
+    DBG(printf("paintEvent\n"));
     QPainter painter(d->widget->viewport());
     painter.setClipRegion(evt->region());
     int exp_x0 = evt->rect().x();
     int exp_y0 = evt->rect().y();
     int w = evt->rect().width();
     int h = evt->rect().height();
-    printf("expose %d %d %d %d\n", exp_x0, exp_y0, w,h);
+    DBG(printf("expose %d %d %d %d\n", exp_x0, exp_y0, w,h));
     double scale_x = d->current_scale_x;
     double scale_y = d->current_scale_y;
     int exp_x1 = exp_x0 + w;
@@ -372,21 +372,23 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
             // Where to copy from taking margin into account
             int src_offs_x = (int)floor(-offs_x/scale_x);
             int src_offs_y = (int)floor(-offs_y/scale_y);
-            int end_offs_x = (int)ceil((-offs_x+copy_w)/scale_x);
-            int end_offs_y = (int)ceil((-offs_y+copy_h)/scale_y);
+            int end_offs_x = (int)floor((-offs_x+copy_w)/scale_x)+1;
+            int end_offs_y = (int)floor((-offs_y+copy_h)/scale_y)+1;
+            int src_width = end_offs_x - src_offs_x;
+            int src_height = end_offs_y - src_offs_y;
 
             // The extra offset we need to transpose after scaling
             int copy_start_offs_x = (int)(-offs_x - src_offs_x * scale_x);
             int copy_start_offs_y = (int)(-offs_y - src_offs_y * scale_y);
-            int copy_scale_width = (int)((end_offs_x - src_offs_x) * scale_x);
-            int copy_scale_height = (int)((end_offs_y - src_offs_y)*scale_y);
+            int copy_scale_width = (int)(src_width * scale_x);
+            int copy_scale_height = (int)(src_height * scale_y);
 
             // Is there a faster way of doing this than these three
             // operators?
             img_scaled = d->image.copy(src_offs_x,
                                        src_offs_y,
-                                       end_offs_x-src_offs_x,
-                                       end_offs_y-src_offs_y);
+                                       src_width,
+                                       src_height);
             printf("copy: src_offs_x src_offs_y scale_x scale_y=%d %d %f %f\n",src_offs_x, src_offs_y,scale_x,scale_y);
             img_scaled = img_scaled.scaled(copy_scale_width,
                                            copy_scale_height);
@@ -468,10 +470,10 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
 
     // Image annotation signal
     img_scaled = img_scaled.convertToFormat(QImage::Format_RGB32);
-    emit imageAnnotate(&img_scaled,
-                       -offs_x,-offs_y, 
-                       scale_x,
-                       scale_y);
+    imageAnnotate(&img_scaled,
+                  -offs_x,-offs_y, 
+                  scale_x,
+                  scale_y);
 
 #if 0
   QPainter painter2(&img_scaled);
@@ -491,7 +493,7 @@ void QvivImageViewer::mousePressEvent (QMouseEvent *event)
     int x = event->x();
     int y = event->y();
 
-    printf("button=%d\n",event->button());
+    DBG(printf("button=%d\n",event->button()));
     if (event->button() == 1)
         this->zoom_in((int)x, (int)y, 2);
     else if (event->button() == 4) {
@@ -501,7 +503,7 @@ void QvivImageViewer::mousePressEvent (QMouseEvent *event)
     }
     else if (event->button() == 2)
         this->zoom_out((int)x, (int)y, 2);
-  
+
 }
 
 void QvivImageViewer::mouseReleaseEvent (QMouseEvent *event)
@@ -544,6 +546,14 @@ void QvivImageViewer::mouseMoveEvent (QMouseEvent *event)
         d->last_pan_anchor_x = x;
         d->last_pan_anchor_y = y;
     }
+
+    // Do all signals need to be proxied?
+    emit qvivMouseMoveEvent(event);
+}
+
+void QvivImageViewer::leaveEvent(QEvent *event)
+{
+    emit qvivLeaveEvent(event);
 }
 
 /*======================================================================
@@ -629,13 +639,13 @@ QvivImageViewer::Priv::view_changed(int do_force,
 
     this->current_x0 = x0;
     this->current_y0 = y0;
-    printf("view changed current_x0 dx y0 dy= %d %d %d %d\n",
-           (int)this->current_x0, (int)dx,
-           (int)this->current_y0, (int)dy
-           );
+    DBG(printf("view changed current_x0 dx y0 dy= %d %d %d %d\n",
+               (int)this->current_x0, (int)dx,
+               (int)this->current_y0, (int)dy
+               ));
 
     /* Scroll visible region */
-    printf("scroll: %d,%d\n", dst_x-src_x,dst_y-src_y);
+    DBG(printf("scroll: %d,%d\n", dst_x-src_x,dst_y-src_y));
     widget->viewport()->scroll(dst_x-src_x,dst_y-src_y);
 
     DBG2(g_print("Filling in: dx dy = %d %d\n", dx, dy));
@@ -880,13 +890,13 @@ void QvivImageViewer::keyPressEvent (QKeyEvent * event)
     QString k = event->text();
 
     if (k=="=" || k=="+")
-        zoom_in(-1, -1, 1.1);
+        zoom_in(-1, -1, 2);
     else if (k==">")
         zoom_in(-1, -1, 2);
     else if (k=="<")
         zoom_out(-1, -1, 2);
     else if (k=="-")
-        zoom_out(0, 0, 1.1);
+        zoom_out(0, 0, 2);
     else if (k=="1"||k=="n")
         zoom_reset();
     else if (k=="f")
@@ -909,4 +919,55 @@ void QvivImageViewer::scrollContentsBy (int /*dx*/, int /*dy*/)
                     d->current_scale_y,
                     horizontalScrollBar()->value(),
                     verticalScrollBar()->value());
+}
+
+void QvivImageViewer::imageAnnotate(QImage* image,
+                                    int x0, int y0,
+                                    double scale_x, double scale_y)
+{
+    emit qvivImageAnnotate(image,x0,y0,scale_x,scale_y);
+}
+
+QImage * QvivImageViewer::get_image()
+{
+    return &d->image;
+}
+
+void QvivImageViewer::canv_coord_to_img_coord(double cx, double cy,
+                                              // output
+                                              double& imgx, double& imgy)
+{
+    if (d->do_flip_horizontal) {
+        int w = viewport()->width();
+        imgx = (d->current_x0+w-cx)/d->current_scale_x;
+    }
+    else
+      imgx=(d->current_x0+cx)/d->current_scale_x;
+
+    if (d->do_flip_vertical) {
+        int h = viewport()->height();
+        imgy = (d->current_y0+h-cy)/d->current_scale_y;
+    }
+    else
+      imgy=(d->current_y0+cy)/d->current_scale_y;
+}
+
+void QvivImageViewer::img_coord_to_canv_coord(double imgx, double imgy,
+                                              // output
+                                              double& canvx, double& canvy)
+{
+    if (d->do_flip_horizontal) {
+        int w = viewport()->width();
+        canvx = (d->current_x0+w-imgx*d->current_scale_x);
+    }
+    else
+      canvx = imgx*d->current_scale_x-d->current_x0;
+    
+    
+    if (d->do_flip_vertical) {
+        int h = viewport()->height();
+        canvy = (d->current_y0+h-imgy*d->current_scale_y);
+    }
+    else
+      canvy = imgy*d->current_scale_y-d->current_y0;
 }

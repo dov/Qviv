@@ -4,3 +4,5 @@ debug/.obj/*
 /Makefile
 /#*
 debug/.moc/*
+/debug/test-balloon
+/debug/test-qviv-widget

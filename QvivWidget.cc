@@ -9,23 +9,23 @@
 #include <QPen>
 #include <QPainter>
 #include <QPaintEvent>
-
-QSize QvivWidget::sizeHint() const
-{
-    return QSize(400, 200);
-}
+#include <QLabel>
+#include <stdio.h>
 
 class QvivWidget::Priv
 {
-    double foo;
+public:
+    QLabel* w_balloon;
 };
 
-QvivWidget::QvivWidget(QWidget *parent)
-    : QWidget(parent)
+QvivWidget::QvivWidget(QWidget *parent,
+                       QImage image)
+    : QvivImageViewer(parent,
+                      image)
 {
-    setBackgroundRole(QPalette::Base);
-    setAutoFillBackground(true);
     d = new Priv;
+    d->w_balloon = new QLabel(NULL,Qt::FramelessWindowHint);
+    d->w_balloon->setStyleSheet("QLabel { background-color : yellow; color : black; }");
 }
 
 QvivWidget::~QvivWidget()
@@ -33,35 +33,55 @@ QvivWidget::~QvivWidget()
     delete d;
 }
 
-// See: http://doc.trolltech.com/4.5/painting-basicdrawing.html
-// for more examples!
-void QvivWidget::paintEvent(QPaintEvent *evt)
+void QvivWidget::imageAnnotate(QImage *image, 
+                               int shift_x, int shift_y,
+                               double scale_x, double scale_y)
 {
-    QPainter painter(this);
-    QImage image("maja.pgm");
-    painter.setClipRegion(evt->region());
-    double wscale = this->size().width()/100.0;
-    double hscale = this->size().height()/100.0;
-    painter.drawImage(QRect(wscale*25,
-                            hscale*25,
-                            wscale*50,
-                            hscale*50),
-                      image);
-                                   
+    struct {
+        double x,y;
+    } points[] =  { { 186.5, 176.5 },
+                    {186, 176},
+                    {186, 177},
+                    {187, 177},
+                    {187, 176}};
 
-    // A list of points
-    QPoint points[4] = {
-         QPoint(10*wscale, 80*hscale),
-         QPoint(20*wscale, 10*hscale),
-         QPoint(80*wscale, 30*hscale),
-         QPoint(90*wscale, 70*hscale)
-     };
-     painter.setRenderHint(QPainter::Antialiasing, true);
+    QPainter painter(image);
+    QPen pen(QColor(255,0,0,255), 5);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.setPen(pen);
 
-     // Use rgb color with alpha
-     QPen pen(QColor(0,128,0,128), 3);
-     
-     painter.setPen(pen);
-     painter.drawPolyline(points, 4);
+    for (int i=0; i<5; i++) {
+        double x = points[i].x*scale_x -shift_x;
+        double y = points[i].y*scale_y-shift_y;
+
+        painter.drawEllipse(x-5,y-5,10,10);
+    }
+    painter.drawEllipse(-15,-15,30,30);
+}
+
+void QvivWidget::mouseMoveEvent (QMouseEvent *event)
+{
+    static char label_text[100];
+
+    int cnv_x = event->x();
+    int cnv_y = event->y();
+    double img_x, img_y;
+    canv_coord_to_img_coord(cnv_x,cnv_y,
+                            // output
+                            img_x,img_y);
+
+    sprintf(label_text, "This is a\nmultiline\n(%.3f, %.3f)\nlabel",
+            img_x, img_y);
+
+    d->w_balloon->setText(label_text);
+    d->w_balloon->adjustSize();
+    d->w_balloon->move(window()->geometry().x()+event->x()+15,
+                       window()->geometry().y()+event->y()-15);
+    d->w_balloon->show();
+}
+
+void QvivWidget::leaveEvent(QEvent *event)
+{
+    d->w_balloon->hide();
 }
 

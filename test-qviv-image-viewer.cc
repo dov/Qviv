@@ -15,15 +15,18 @@
 #include <QVBoxLayout>
 #include <QScrollArea>
 #include <QPainter>
+#include <QMouseEvent>
+#include <QLabel>
+#include <QRect>
 #include "QvivImageViewer.h"
 #include "MyApp.h"
 
-
 class MyApp::Priv {
 public:
+    QWidget *window;
     QvivImageViewer *w_imgv;
     QImage *image;
-    QPushButton *w_quit;
+    QLabel* w_balloon;
 };
 
 void MyApp::MyImageAnnotate(QImage* image,
@@ -42,6 +45,25 @@ void MyApp::MyImageAnnotate(QImage* image,
   painter.drawEllipse(x,y,10,10);
 }
 
+void MyApp::MyMouseMoveEvent (QMouseEvent *event)
+{
+    static char label_text[100];
+    sprintf(label_text, "This is a\nmultiline\n(%d, %d)\nlabel",
+            event->x(), event->y());
+
+    // How do you get this to fit the internal text???
+    d->w_balloon->setText(label_text);
+    d->w_balloon->adjustSize();
+    d->w_balloon->move(d->window->geometry().x()+event->x()+15,
+                       d->window->geometry().y()+event->y()-15);
+    d->w_balloon->show();
+}
+
+void MyApp::MyLeaveEvent(QEvent */*event*/)
+{
+    d->w_balloon->hide();
+}
+
 MyApp::MyApp(int argc, char *argv[])
     : QApplication(argc, argv)
 {
@@ -53,21 +75,34 @@ MyApp::MyApp(int argc, char *argv[])
         
     d->image = new QImage(argv[1]);
 
-    QWidget *window = new QWidget;
-    d->w_imgv = new QvivImageViewer(window,*d->image);
+    d->window = new QWidget;
+    d->w_imgv = new QvivImageViewer(d->window,*d->image);
 
     QVBoxLayout *layout = new QVBoxLayout;
     layout->addWidget(d->w_imgv);
     layout->setContentsMargins(0,0,0,0);
     layout->setSpacing(0);
     //    window->resize(500,400);
-    window->setLayout(layout);
-    window->show();
+    d->window->setLayout(layout);
+    d->window->show();
 
+    d->w_balloon = new QLabel(NULL,Qt::FramelessWindowHint);
+    d->w_balloon->setStyleSheet("QLabel { background-color : yellow; color : black; }");
+
+    d->w_balloon->setText("foo");
+    d->w_balloon->show();
     d->w_imgv->grabKeyboard(); 
+
     QObject::connect(d->w_imgv,
-                     SIGNAL(imageAnnotate(QImage*,int,int,double,double)),
+                     SIGNAL(qvivImageAnnotate(QImage*,int,int,double,double)),
                      this, SLOT(MyImageAnnotate(QImage*,int,int,double,double)));
+    QObject::connect(d->w_imgv,
+                     SIGNAL(qvivMouseMoveEvent(QMouseEvent*)),
+                     this, SLOT(MyMouseMoveEvent(QMouseEvent *)));
+
+    QObject::connect(d->w_imgv,
+                     SIGNAL(qvivLeaveEvent(QEvent*)),
+                     this, SLOT(MyLeaveEvent(QEvent*)));
 }
 
 MyApp::~MyApp()

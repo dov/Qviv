@@ -3,16 +3,18 @@
 #define QVIVWIDGET_H
 
 #include <QWidget>
+#include "QvivImageViewer.h"
 
-class QvivWidget : public QWidget {
+class QvivWidget : public QvivImageViewer {
 public:
-    QvivWidget(QWidget *parent = 0);
+    QvivWidget(QWidget *parent,
+               QImage image );
     ~QvivWidget();
 
 protected:
-    void paintEvent(QPaintEvent *evt);
-    QSize sizeHint() const;
-    QSize Resize(QResizeEvent) const;
+    void imageAnnotate(QImage*, int, int, double, double);
+    void mouseMoveEvent (QMouseEvent *event);
+    void leaveEvent(QEvent *event);
 
 private:
     class Priv;
