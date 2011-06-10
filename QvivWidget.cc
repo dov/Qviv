@@ -56,12 +56,15 @@ void QvivWidget::imageAnnotate(QImage *image,
 
         painter.drawEllipse(x-5,y-5,10,10);
     }
-    painter.drawEllipse(-15,-15,30,30);
+    //    painter.drawEllipse(-15,-15,30,30);
 }
 
 void QvivWidget::mouseMoveEvent (QMouseEvent *event)
 {
     static char label_text[100];
+
+    // Call parent event
+    QvivImageViewer::mouseMoveEvent(event);
 
     int cnv_x = event->x();
     int cnv_y = event->y();

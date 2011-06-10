@@ -28,6 +28,11 @@
 #define DBG(a) 
 #define DBG2(a) 
 
+// Scale and replicate an image. 
+static QImage pixelScaleReplicate(QImage img_in,
+                                  int scale_x,
+                                  int scale_y);
+
 class QvivImageViewer::Priv 
 {
 public:
@@ -121,6 +126,8 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
     DBG(printf("expose %d %d %d %d\n", exp_x0, exp_y0, w,h));
     double scale_x = d->current_scale_x;
     double scale_y = d->current_scale_y;
+
+    // Constraint by using the pixel replication below
     int exp_x1 = exp_x0 + w;
     int exp_y1 = exp_y0 + h;
     int offs_x = -d->current_x0-exp_x0;
@@ -380,8 +387,8 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
             // The extra offset we need to transpose after scaling
             int copy_start_offs_x = (int)(-offs_x - src_offs_x * scale_x);
             int copy_start_offs_y = (int)(-offs_y - src_offs_y * scale_y);
-            int copy_scale_width = (int)(src_width * scale_x);
-            int copy_scale_height = (int)(src_height * scale_y);
+            int copy_scale_width = (int)(src_width * scale_x+0.5);
+            int copy_scale_height = (int)(src_height * scale_y+0.5);
 
             // Is there a faster way of doing this than these three
             // operators?
@@ -389,9 +396,16 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
                                        src_offs_y,
                                        src_width,
                                        src_height);
-            printf("copy: src_offs_x src_offs_y scale_x scale_y=%d %d %f %f\n",src_offs_x, src_offs_y,scale_x,scale_y);
-            img_scaled = img_scaled.scaled(copy_scale_width,
-                                           copy_scale_height);
+
+            DBG(printf("copy: src_offs_x src_offs_y scale_x scale_y=%d %d %f %f\n",src_offs_x, src_offs_y,scale_x,scale_y));
+            if (scale_x > 8) 
+                img_scaled = pixelScaleReplicate(img_scaled,
+                                                 scale_x,
+                                                 scale_y);
+            else
+                img_scaled = img_scaled.scaled(copy_scale_width,
+                                               copy_scale_height);
+
             img_scaled = img_scaled.copy(copy_start_offs_x,
                                          copy_start_offs_y,
                                          copy_w,
@@ -528,11 +542,13 @@ void QvivImageViewer::mouseMoveEvent (QMouseEvent *event)
 
     if (d->is_mouse_scrolling) {
         if (d->last_pan_anchor_x>0 && d->last_pan_anchor_y > 0) {
+#if 0
             printf("mouseMoveEvent: lpx,lpy,x,y=%d,%d,%d,%d\n",
                    d->last_pan_anchor_x,
                    d->last_pan_anchor_y,
                    x,
                    y);
+#endif
             int dx = (int)(d->last_pan_anchor_x-x);
             int dy = (int)(d->last_pan_anchor_y-y);
 
@@ -711,6 +727,15 @@ QvivImageViewer::zoom_around_fixed_point(double new_scale_x,
 {
     int cnv_w = this->size().width();
     int cnv_h = this->size().height();
+
+    // Use scaling of whole pixels for zoom in as a current constraint
+    // as replicate currently demands whole pixels and only above 8 do
+    // we start to notice the bug.
+    if (new_scale_x>8) {
+        new_scale_x = floor(new_scale_x+0.5);
+        new_scale_y = floor(new_scale_y+0.5);
+    }
+
     double old_scale_x, old_scale_y, old_x0, old_y0, new_x0, new_y0;
     DBG(printf("zoom_around_fixed_point: nsx nsy old_x old_y new_x new_y = %f %f  %f %f  %f %f\n",
                new_scale_x, new_scale_y,
@@ -817,7 +842,9 @@ QvivImageViewer::zoom_out(int /*x*/, int /*y*/, double factor)
 int
 QvivImageViewer::zoom_translate(int dx, int dy)
 {
+#if 0
     printf("zoom_translate %d %d\n", dx,dy);
+#endif
     d->view_changed(false,
                     d->current_scale_x,
                     d->current_scale_y,
@@ -971,3 +998,33 @@ void QvivImageViewer::img_coord_to_canv_coord(double imgx, double imgy,
     else
       canvy = imgy*d->current_scale_y-d->current_y0;
 }
+
+// Scale and replicate an image. 
+static QImage pixelScaleReplicate(QImage img_in,
+                                  int scale_x,
+                                  int scale_y)
+{
+  int width_in = img_in.width();
+  int height_in = img_in.height();
+  int width_out = width_in*scale_x;
+  int height_out = height_in*scale_y;
+  int depth_bytes = img_in.depth()/8; // Assume depth!=1
+  QImage img_out(width_out,height_out,img_in.format());
+  for (int row_idx=0; row_idx<height_in; row_idx++) {
+    for (int rs_idx=0; rs_idx<scale_y; rs_idx++) {
+      const uchar *src=img_in.constScanLine(row_idx);
+      uchar *dst=img_out.scanLine(row_idx*scale_y+rs_idx);
+
+      for (int col_idx=0; col_idx<width_in; col_idx++) {
+        for (int cs_idx=0; cs_idx<scale_x; cs_idx++) {
+          const uchar *sp = src;
+          for (int i=0; i<depth_bytes; i++) 
+            *dst++= *sp++;
+        }
+        src += depth_bytes;
+      }
+    }
+  }
+  return img_out;
+}
+    
