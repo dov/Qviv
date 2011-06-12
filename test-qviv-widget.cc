@@ -19,6 +19,7 @@
 #include <QLabel>
 #include <QRect>
 #include "QvivWidget.h"
+#include "QvivData.h"
 
 class MyApp : public QApplication {
 public:
@@ -59,6 +60,25 @@ MyApp::MyApp(int argc, char *argv[])
     //    window->resize(500,400);
     d->window->setLayout(layout);
     d->window->show();
+
+    struct {
+        double x,y;
+    } points[] =  { { 186.5, 176.5 },
+                    {186, 176},
+                    {186, 177},
+                    {187, 177},
+                    {187, 176}};
+
+    // Add some points
+    QvivData data;
+    QvivDataSet data_set(QColor(0,255,0),5);
+
+    for (int i=0; i<5; i++) 
+        data_set.add_point(OP_MOVE, points[i].x,points[i].y);
+    data.data_sets.push_back(data_set);
+    
+    //    painter.drawEllipse(-15,-15,30,30);
+    d->w_imgv->set_qviv_data(data);
 }
 
 MyApp::~MyApp()

@@ -64,5 +64,12 @@ file:scale-and-offset.svg
    - It turns out that scaling is not accurate for large scales when using ~Qt::FastTransformation~ for 0th order interpolation. The resulting image has the correct size, but the pixel boundaries appear to be powers of 2. There does not seem to be any way to work around this problem except for rewriting the scaling function myself for large scaling factors!
    - [X] Dragging doesn't work in ~test-qviv-image-viewer~.
    - [X] Wrote replacement for QImage::scaled().
-     
+* <2011-06-12 Sun>
+** Data set
+   - [X] Started implementing a data set structure.
+   - [X] Changed test program to use this new structure.
+** Balloon
+   - [X] Got problem with motion of balloon under X11. Solved by using ~X11BypassWindowManagerHint~ flag.
+   - [ ] Test balloon under Windows.
+   
    

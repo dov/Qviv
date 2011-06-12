@@ -6,6 +6,7 @@
 //----------------------------------------------------------------------
 
 #include <QvivWidget.h>
+#include <QvivData.h>
 #include <QPen>
 #include <QPainter>
 #include <QPaintEvent>
@@ -16,6 +17,7 @@ class QvivWidget::Priv
 {
 public:
     QLabel* w_balloon;
+    QvivData qviv_data;
 };
 
 QvivWidget::QvivWidget(QWidget *parent,
@@ -24,7 +26,8 @@ QvivWidget::QvivWidget(QWidget *parent,
                       image)
 {
     d = new Priv;
-    d->w_balloon = new QLabel(NULL,Qt::FramelessWindowHint);
+    d->w_balloon = new QLabel(NULL,
+                              Qt::FramelessWindowHint|Qt::X11BypassWindowManagerHint);
     d->w_balloon->setStyleSheet("QLabel { background-color : yellow; color : black; }");
 }
 
@@ -33,6 +36,12 @@ QvivWidget::~QvivWidget()
     delete d;
 }
 
+void QvivWidget::set_qviv_data(QvivData& qviv_data)
+{
+  d->qviv_data = qviv_data;
+}
+
+#if 0
 void QvivWidget::imageAnnotate(QImage *image, 
                                int shift_x, int shift_y,
                                double scale_x, double scale_y)
@@ -58,6 +67,29 @@ void QvivWidget::imageAnnotate(QImage *image,
     }
     //    painter.drawEllipse(-15,-15,30,30);
 }
+#endif
+
+void QvivWidget::imageAnnotate(QImage *image, 
+                               int shift_x, int shift_y,
+                               double scale_x, double scale_y)
+{
+    QPainter painter(image);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+
+    for (int ds_idx=0; ds_idx<(int)d->qviv_data.data_sets.size(); ds_idx++) {
+        QvivDataSet& ds = d->qviv_data.data_sets[ds_idx];
+        QPen pen(ds.color, ds.line_width);
+        painter.setPen(pen);
+
+        for (int i=0; i<(int)ds.points.size(); i++) {
+            QvivPoint& pt=ds.points[i];
+            double x = pt.x*scale_x -shift_x;
+            double y = pt.y*scale_y-shift_y;
+            
+            painter.drawEllipse(x-5,y-5,10,10);
+        }
+    }
+}
 
 void QvivWidget::mouseMoveEvent (QMouseEvent *event)
 {
@@ -76,11 +108,13 @@ void QvivWidget::mouseMoveEvent (QMouseEvent *event)
     sprintf(label_text, "This is a\nmultiline\n(%.3f, %.3f)\nlabel",
             img_x, img_y);
 
+    setUpdatesEnabled(false);
     d->w_balloon->setText(label_text);
     d->w_balloon->adjustSize();
-    d->w_balloon->move(window()->geometry().x()+event->x()+15,
-                       window()->geometry().y()+event->y()-15);
+    d->w_balloon->move(window()->geometry().x()+event->x()+5,
+                       window()->geometry().y()+event->y()-d->w_balloon->geometry().height()-5);
     d->w_balloon->show();
+    setUpdatesEnabled(true);
 }
 
 void QvivWidget::leaveEvent(QEvent *event)
