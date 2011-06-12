@@ -71,5 +71,8 @@ file:scale-and-offset.svg
 ** Balloon
    - [X] Got problem with motion of balloon under X11. Solved by using ~X11BypassWindowManagerHint~ flag.
    - [ ] Test balloon under Windows.
-   
-   
+** Windows 
+   - [X] Compilation and running works!
+   - [X] Fixed include errors on windows.
+   - [ ] Balloon steals focus. How can I can I make it not do that?
+   - [ ] Clicking in window puts main window in front. Need to raise balloon window.

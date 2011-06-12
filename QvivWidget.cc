@@ -5,13 +5,13 @@
 //  Tue May 10 12:00:19 2011
 //----------------------------------------------------------------------
 
-#include <QvivWidget.h>
-#include <QvivData.h>
 #include <QPen>
 #include <QPainter>
 #include <QPaintEvent>
 #include <QLabel>
 #include <stdio.h>
+#include "QvivWidget.h"
+#include "QvivData.h"
 
 class QvivWidget::Priv
 {
