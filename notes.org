@@ -41,24 +41,24 @@ file:scale-and-offset.svg
    - [X] How to make the size of the tooltip window fit the text? How do you get the natural size of a text label. Test adjustSize() that I found on the net
    - [X] Change the label background to Yellow. 
    - [X] Make label popdown on widget focus leave and show in motion handle.
-   - [ ] Implement ~CanvasToImg()~ and ~ImgToCanvas()~
-   - [ ] Data structure for giv data.
-   - [ ] Start implemenatino of =QvivWidget= based on the reference implementation in ~test-qviv-image-viewer~. 
+   - [X] Implement ~CanvasToImg()~ and ~ImgToCanvas()~
+   - [X] Data structure for giv data.
+   - [X] Start implemenatino of =QvivWidget= based on the reference implementation in ~test-qviv-image-viewer~. 
 * <2011-06-06 Mon>
 ** Notes
-   - [ ] Something is wrong with the position as seen by an example program drawing a circle at (0,0). Make sure it is always drawn correctly! What is the difference between Qviv and Giv?
+   - [X] Something is wrong with the position as seen by an example program drawing a circle at (0,0). Make sure it is always drawn correctly! What is the difference between Qviv and Giv?
    - [X] Start of QvivWidget.
      - [X] Override signals.
      - [X] Balloon support.
    - [X] Implement ~CanvasToImg()~ and ~ImgToCanvas()~
-   - [ ] Changed drawing of circles to use (x0,y0,size_x,size_y) coordinates.
+   - [X] Changed drawing of circles to use (x0,y0,size_x,size_y) coordinates.
 ** Drawing sub-pixel position
    - Annotation and motion are ok.
-   - [ ] Pixmap drawing is not accurate.
-   - [ ] Spurious annotations drawn. Why?
-   - [ ] Investigated image and calculations for sub pixel copying. Looks ok. So what is wrong?
+   - [X] Pixmap drawing is not accurate.
+   - [X] Spurious annotations drawn. Why?
+   - [X] Investigated image and calculations for sub pixel copying. Looks ok. So what is wrong?
    - [X] If widget is constraint to two powers, it works.
-   - [ ] Check arithmetics rounding errors.
+   - [X] Check arithmetics rounding errors.
 * <2011-06-10 Fri>
 ** Pixel scaling problem
    - It turns out that scaling is not accurate for large scales when using ~Qt::FastTransformation~ for 0th order interpolation. The resulting image has the correct size, but the pixel boundaries appear to be powers of 2. There does not seem to be any way to work around this problem except for rewriting the scaling function myself for large scaling factors!
@@ -74,5 +74,9 @@ file:scale-and-offset.svg
 ** Windows 
    - [X] Compilation and running works!
    - [X] Fixed include errors on windows.
-   - [ ] Balloon steals focus. How can I can I make it not do that?
-   - [ ] Clicking in window puts main window in front. Need to raise balloon window.
+   - [X] Balloon steals focus. How can I can I make it not do that?
+   - [X] Clicking in window puts main window in front. Need to raise balloon window.
+** Done/Todo  
+   - [ ] Drawing label image for balloons.
+   - [ ] Renderer class so support both normal rendering and balloon rendering like in Giv.
+   - [ ] Support line drawing and more types, etc.

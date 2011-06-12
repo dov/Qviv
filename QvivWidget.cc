@@ -27,7 +27,7 @@ QvivWidget::QvivWidget(QWidget *parent,
 {
     d = new Priv;
     d->w_balloon = new QLabel(NULL,
-                              Qt::FramelessWindowHint|Qt::X11BypassWindowManagerHint);
+                              Qt::FramelessWindowHint|Qt::X11BypassWindowManagerHint|Qt::ToolTip);
     d->w_balloon->setStyleSheet("QLabel { background-color : yellow; color : black; }");
 }
 
