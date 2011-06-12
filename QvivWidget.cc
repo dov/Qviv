@@ -78,8 +78,9 @@ void QvivWidget::imageAnnotate(QImage *image,
 
     for (int ds_idx=0; ds_idx<(int)d->qviv_data.data_sets.size(); ds_idx++) {
         QvivDataSet& ds = d->qviv_data.data_sets[ds_idx];
-        QPen pen(ds.color, ds.line_width);
-        painter.setPen(pen);
+        QPen pen(ds.color, 0);   // 0 is the stroke width
+        painter.setPen(Qt::NoPen);  // Don't stroke
+        painter.setBrush(ds.color); // this is the fill color
 
         for (int i=0; i<(int)ds.points.size(); i++) {
             QvivPoint& pt=ds.points[i];

@@ -77,6 +77,16 @@ MyApp::MyApp(int argc, char *argv[])
         data_set.add_point(OP_MOVE, points[i].x,points[i].y);
     data.data_sets.push_back(data_set);
     
+    QvivDataSet data_set1(QColor(255,0,0),5);
+    for (int i=0; i<5; i++) 
+        data_set1.add_point(OP_MOVE, points[i].x-2,points[i].y);
+    data.data_sets.push_back(data_set1);
+
+    QvivDataSet data_set2(QColor("#FFA500"),3);
+    for (int i=0; i<5; i++) 
+        data_set2.add_point(OP_MOVE, points[i].x+2,points[i].y);
+    data.data_sets.push_back(data_set2);
+
     //    painter.drawEllipse(-15,-15,30,30);
     d->w_imgv->set_qviv_data(data);
 }
