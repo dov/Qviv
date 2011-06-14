@@ -59,6 +59,12 @@ public:
     // Get a pointer to the current image
     QImage *get_image();
 
+    // Set the scroll area - This is ignored if an image is being used
+    void set_scroll_area(double scroll_min_x,
+                         double scroll_min_y,
+                         double scroll_max_x,
+                         double scroll_max_y);
+
 protected:
     void paintEvent(QPaintEvent * event);
     void resizeEvent ( QResizeEvent * event );

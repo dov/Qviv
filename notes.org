@@ -70,7 +70,7 @@ file:scale-and-offset.svg
    - [X] Changed test program to use this new structure.
 ** Balloon
    - [X] Got problem with motion of balloon under X11. Solved by using ~X11BypassWindowManagerHint~ flag.
-   - [ ] Test balloon under Windows.
+   - [X] Test balloon under Windows.
 ** Windows 
    - [X] Compilation and running works!
    - [X] Fixed include errors on windows.
@@ -80,3 +80,13 @@ file:scale-and-offset.svg
    - [ ] Drawing label image for balloons.
    - [ ] Renderer class so support both normal rendering and balloon rendering like in Giv.
    - [ ] Support line drawing and more types, etc.
+   - [X] Make it work without an image.
+     - [X] Bug in use of scrollbars when scroll_min_* != 0
+     - [X] Scrolling creates black lines.
+     - [X] With image, scroll region should be ignored. It is not!
+     - [X] Moving the balloon popup causes complete repaint of background. This is too slow! Need to use backingstore. Ok. Erased calls to ~setUpdatesEnabled(true)~;
+   - [ ] Don't redraw on middle mouse grab and paning.
+
+** Regarding Qt painter vs Agg:
+   - http://qtnode.net/wiki/Agg_painting
+   - [[http://swik.net/Trolltech/Trolltech+Labs+Blogs/Qt+Graphics+and+Performance+-+The+Raster+Engine/dfwcx][Blog post about the birth of the Qt painting engine and how it was inspired by agg]].

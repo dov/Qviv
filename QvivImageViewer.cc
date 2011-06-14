@@ -79,6 +79,10 @@ QvivImageViewer::QvivImageViewer(QWidget *parent,
     d->image = image;
     d->scroll_width = image.width();
     d->scroll_height = image.height();
+    if (d->scroll_width == 0)
+      d->scroll_width = 256;
+    if (d->scroll_height == 0)
+      d->scroll_height = 256;
     d->current_scale_x = 1;
     d->current_scale_y = 1;
     d->current_x0 = 0;
@@ -95,8 +99,8 @@ QvivImageViewer::QvivImageViewer(QWidget *parent,
     d->last_pan_anchor_y = -1;
     d->scroll_min_x=0;
     d->scroll_min_y=0;
-    d->scroll_max_x = image.width();
-    d->scroll_max_y = image.height();
+    d->scroll_max_x = d->scroll_width;
+    d->scroll_max_y = d->scroll_height;
     d->first_time = true;
 
     setMouseTracking(true);
@@ -109,7 +113,10 @@ QvivImageViewer::~QvivImageViewer()
 
 QSize QvivImageViewer::sizeHint() const
 {
-    return QSize(d->image.width(), d->image.height());
+    if (d->image.width())
+      return QSize(d->image.width(), d->image.height());
+    else
+      return QSize(d->scroll_width, d->scroll_height);
 }
 
 // See: http://doc.trolltech.com/4.5/painting-basicdrawing.html
@@ -165,6 +172,9 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
                     exp_x0,
                     offs_x));
   
+        // QPainter painter_window(this);
+        // painter_window.setBrush(QColor(255,255,255));
+
         /* If img fits in canvas horizontally, need a smaller drawing zone */
         if (img_w * scale_x < cnv_w) {
             img_x0 = ((cnv_w - img_w*scale_x)/2);
@@ -182,6 +192,8 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
             copy_w = 0;
             offs_x = 0;
             dst_x = img_x0;
+
+            //            painter_window.drawRect(exp_x0,exp_y0,w,h);
 #if 0
             gdk_draw_rectangle(widget->window,
                                widget->style->bg_gc[GTK_WIDGET_STATE (widget)],
@@ -201,6 +213,8 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
             else
                 trans_offs_x = offs_x = 0;
             
+            // painter_window.drawRect(exp_x0,exp_y0,(img_x0-exp_x0), h);
+            // painter_window.drawRect(img_x1,exp_y0,(exp_x1-img_x1), h);
 #if 0            
             gdk_draw_rectangle(widget->window,
                                widget->style->bg_gc[GTK_WIDGET_STATE (widget)],
@@ -224,6 +238,8 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
             else
                 offs_x = trans_offs_x = 0;
             
+            // painter_window.drawRect(exp_x0,exp_y0,(img_x0-exp_x0), h);
+
 #if 0
             gdk_draw_rectangle(widget->window,
                                widget->style->bg_gc[GTK_WIDGET_STATE (widget)],
@@ -232,9 +248,11 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
 #endif
         }
         else if (exp_x0 > img_x1) {
+            copy_w = 0;
+            // painter_window.drawRect(exp_x0,exp_y0,w, h);
+
 #if 0
             DBG(fprintf(stderr, "Case 4X\n"));
-            copy_w = 0;
             gdk_draw_rectangle(widget->window,
                                widget->style->bg_gc[GTK_WIDGET_STATE (widget)],
                                TRUE,
@@ -254,6 +272,7 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
             else
               offs_x = trans_offs_x = -(exp_x0-img_x0);
             
+            // painter_window.drawRect(img_x1,exp_y0,exp_x1-img_x1, h);
 #if 0
             gdk_draw_rectangle(widget->window,
                                widget->style->bg_gc[GTK_WIDGET_STATE (widget)],
@@ -280,6 +299,8 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
             copy_h = 0;
             offs_y = 0;
             dst_x = img_y0;
+            // painter_window.drawRect(exp_x0,exp_y0,w, h);
+
 #if 0
             gdk_draw_rectangle(widget->window,
   			     widget->style->bg_gc[GTK_WIDGET_STATE (widget)],
@@ -298,6 +319,9 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
             }
             else
               trans_offs_y = offs_y = 0;
+
+            // painter_window.drawRect(exp_x0,exp_y0,w, img_y0-exp_y0);
+            // painter_window.drawRect(exp_x0, img_y1,w, exp_y1-img_y1);
             
 #if 0
             gdk_draw_rectangle(widget->window,
@@ -322,6 +346,8 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
             else
                 offs_y = trans_offs_y = 0;
 
+            // painter_window.drawRect(exp_x0,exp_y0,w,(img_y0-exp_y0));
+
 #if 0
             gdk_draw_rectangle(widget->window,
                                widget->style->bg_gc[GTK_WIDGET_STATE (widget)],
@@ -332,6 +358,8 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
         else if (exp_y0 > img_y1) {
             DBG(fprintf(stderr, "Case 4Y\n"));
             copy_h = 0;
+
+            // painter_window.drawRect(exp_x0,exp_y0,w, h);
 #if 0
             gdk_draw_rectangle(widget->window,
                                widget->style->bg_gc[GTK_WIDGET_STATE (widget)],
@@ -351,6 +379,7 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
             else
                 offs_y = trans_offs_y = -(exp_y0-img_y0);
             
+            // painter_window.drawRect(exp_x0,img_y1,w,exp_y1-img_y1);
 #if 0
             gdk_draw_rectangle(widget->window,
                                widget->style->bg_gc[GTK_WIDGET_STATE (widget)],
@@ -446,14 +475,11 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
         }
     }
 
-#if 0
     // If we are working without a background image then create one
     // now for the painting.
-    if (!img_scaled) {
-        img_scaled = gdk_pixbuf_new(GDK_COLORSPACE_RGB,
-                                    TRUE,
-                                    8,
-                                    w, h);
+    if (!d->image.width()) {
+        img_scaled = QImage(w,h,QImage::Format_RGB32);
+
         if (d->do_flip_horizontal)
           offs_x = d->current_x0+w-exp_x1+cnv_w;
         else
@@ -468,14 +494,22 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
         copy_w = w;
         copy_h = h;
 
+        // Paint it gray
+        QPainter painter(&img_scaled);
+        // Paint the background white. Should this be configurable?
+        painter.setPen(QPen(QColor(255,255,255),0));
+        painter.setBrush(QColor(255,255,255));
+        painter.drawRect(0,0,w,h);
+
+#if 0
         gdk_pixbuf_fill(img_scaled,
                         0xffffffff);
+#endif
     }
     else {
         offs_x = trans_offs_x;
         offs_y = trans_offs_y;
     }
-#endif
           
     // Add checkerboard below images that have alpha channel
     if (img_scaled.hasAlphaChannel()) {
@@ -604,6 +638,11 @@ QvivImageViewer::Priv::view_changed(int do_force,
         
     double width = this->scroll_width;
     double height = this->scroll_height;
+
+    if (this->image.width()) {
+      width = this->image.width();
+      height = this->image.height();
+    }
         
     if (width*scale_x > cwidth)
         render_width = cwidth;
@@ -700,11 +739,23 @@ QvivImageViewer::Priv::view_changed(int do_force,
   // Update scrollbars
   QSize areaSize = widget->viewport()->size();
   
-  widget->verticalScrollBar()->setPageStep(this->scroll_width);
-  widget->horizontalScrollBar()->setPageStep(this->scroll_height);
-  widget->verticalScrollBar()->setRange(0, this->scroll_height*scale_y - areaSize.height());
-  widget->horizontalScrollBar()->setRange(0, this->scroll_width*scale_y - areaSize.width());
+  int scroll_width = this->image.width();
+  int scroll_height = this->image.height();
+  if (scroll_width == 0)
+  {
+    scroll_width = this->scroll_width;
+    x0 -= this->scroll_min_x*this->current_scale_x;
+  }
+  if (scroll_height == 0)
+  {
+    scroll_height = this->scroll_height;
+    y0 -= this->scroll_min_y*this->current_scale_y;
+  }
+  widget->horizontalScrollBar()->setPageStep(scroll_width);
+  widget->horizontalScrollBar()->setRange(0, scroll_width*scale_x - areaSize.width());
   widget->horizontalScrollBar()->setValue(x0);
+  widget->verticalScrollBar()->setPageStep(scroll_height);
+  widget->verticalScrollBar()->setRange(0, scroll_height*scale_y - areaSize.height());
   widget->verticalScrollBar()->setValue(y0);
 
   return 1;
@@ -883,12 +934,15 @@ int QvivImageViewer::zoom_to_box(double world_min_x,
   
 void QvivImageViewer::zoom_fit(void)
 {
-    zoom_to_box(d->scroll_min_x,
-                d->scroll_min_y,
-                d->scroll_max_x,
-                d->scroll_max_y,
-                0,
-                true);
+    if (d->image.width())
+        zoom_to_box(0,0,d->image.width(),d->image.height(),0,true);
+    else
+        zoom_to_box(d->scroll_min_x,
+                    d->scroll_min_y,
+                    d->scroll_max_x,
+                    d->scroll_max_y,
+                    0,
+                    true);
 }
 
 void QvivImageViewer::zoom_reset(void)
@@ -941,11 +995,18 @@ void QvivImageViewer::keyPressEvent (QKeyEvent * event)
 // Map scrollbar changes to internal view changes
 void QvivImageViewer::scrollContentsBy (int /*dx*/, int /*dy*/)
 {
+    double x0 = 0;
+    double y0 = 0;
+    if (d->image.width()==0) {
+        x0 = d->scroll_min_x*d->current_scale_x;
+        y0 = d->scroll_min_y*d->current_scale_y;
+    }
+      
     d->view_changed(false,
                     d->current_scale_x,
                     d->current_scale_y,
-                    horizontalScrollBar()->value(),
-                    verticalScrollBar()->value());
+                    horizontalScrollBar()->value()+x0,
+                    verticalScrollBar()->value()+y0);
 }
 
 void QvivImageViewer::imageAnnotate(QImage* image,
@@ -997,6 +1058,19 @@ void QvivImageViewer::img_coord_to_canv_coord(double imgx, double imgy,
     }
     else
       canvy = imgy*d->current_scale_y-d->current_y0;
+}
+
+void QvivImageViewer::set_scroll_area(double scroll_min_x,
+                                      double scroll_min_y,
+                                      double scroll_max_x,
+                                      double scroll_max_y)
+{
+    d->scroll_min_x = scroll_min_x;
+    d->scroll_min_y = scroll_min_y;
+    d->scroll_max_x = scroll_max_x;
+    d->scroll_max_y = scroll_max_y;
+    d->scroll_width = d->scroll_max_x - d->scroll_min_x;
+    d->scroll_height = d->scroll_max_y - d->scroll_min_y;
 }
 
 // Scale and replicate an image. 

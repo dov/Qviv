@@ -27,7 +27,9 @@ QvivWidget::QvivWidget(QWidget *parent,
 {
     d = new Priv;
     d->w_balloon = new QLabel(NULL,
-                              Qt::FramelessWindowHint|Qt::X11BypassWindowManagerHint|Qt::ToolTip);
+                              Qt::FramelessWindowHint
+                              |Qt::X11BypassWindowManagerHint
+                              |Qt::ToolTip);
     d->w_balloon->setStyleSheet("QLabel { background-color : yellow; color : black; }");
 }
 
@@ -109,13 +111,11 @@ void QvivWidget::mouseMoveEvent (QMouseEvent *event)
     sprintf(label_text, "This is a\nmultiline\n(%.3f, %.3f)\nlabel",
             img_x, img_y);
 
-    setUpdatesEnabled(false);
     d->w_balloon->setText(label_text);
     d->w_balloon->adjustSize();
     d->w_balloon->move(window()->geometry().x()+event->x()+5,
                        window()->geometry().y()+event->y()-d->w_balloon->geometry().height()-5);
     d->w_balloon->show();
-    setUpdatesEnabled(true);
 }
 
 void QvivWidget::leaveEvent(QEvent *event)

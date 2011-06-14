@@ -43,12 +43,11 @@ MyApp::MyApp(int argc, char *argv[])
     : QApplication(argc, argv)
 {
     d = new Priv;
-    if (argc<2) {
-        fprintf(stderr, "Need image filename!\n");
-        ::exit(-1);
-    }
+    if (argc>=2) 
+      d->image = new QImage(argv[1]);
+    else
+      d->image = new QImage();
         
-    d->image = new QImage(argv[1]);
 
     d->window = new QWidget;
     d->w_imgv = new QvivWidget(d->window,*d->image);
@@ -87,8 +86,18 @@ MyApp::MyApp(int argc, char *argv[])
         data_set2.add_point(OP_MOVE, points[i].x+2,points[i].y);
     data.data_sets.push_back(data_set2);
 
+    // Create a large dataset.
+    QvivDataSet data_set_large(QColor("#806060"));
+    int n = 100;
+    for (int i=0; i<n*n; i++)
+      data_set_large.add_point(OP_MOVE, 181+1.0/n*(i%n), 171+1.0/n*(i/n));
+    data.data_sets.push_back(data_set_large);
+
     //    painter.drawEllipse(-15,-15,30,30);
     d->w_imgv->set_qviv_data(data);
+    d->w_imgv->set_scroll_area(180,170,190,180);
+    //d->w_imgv->set_scroll_area(0,0,190,180);
+    d->w_imgv->zoom_fit();
 }
 
 MyApp::~MyApp()
