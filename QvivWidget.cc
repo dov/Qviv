@@ -43,38 +43,13 @@ void QvivWidget::set_qviv_data(QvivData& qviv_data)
   d->qviv_data = qviv_data;
 }
 
-#if 0
 void QvivWidget::imageAnnotate(QImage *image, 
                                int shift_x, int shift_y,
                                double scale_x, double scale_y)
 {
-    struct {
-        double x,y;
-    } points[] =  { { 186.5, 176.5 },
-                    {186, 176},
-                    {186, 177},
-                    {187, 177},
-                    {187, 176}};
+    if (get_mouse_scrolling())
+        return;
 
-    QPainter painter(image);
-    QPen pen(QColor(255,0,0,255), 5);
-    painter.setRenderHint(QPainter::Antialiasing, true);
-    painter.setPen(pen);
-
-    for (int i=0; i<5; i++) {
-        double x = points[i].x*scale_x -shift_x;
-        double y = points[i].y*scale_y-shift_y;
-
-        painter.drawEllipse(x-5,y-5,10,10);
-    }
-    //    painter.drawEllipse(-15,-15,30,30);
-}
-#endif
-
-void QvivWidget::imageAnnotate(QImage *image, 
-                               int shift_x, int shift_y,
-                               double scale_x, double scale_y)
-{
     QPainter painter(image);
     painter.setRenderHint(QPainter::Antialiasing, true);
 
@@ -122,4 +97,3 @@ void QvivWidget::leaveEvent(QEvent *event)
 {
     d->w_balloon->hide();
 }
-

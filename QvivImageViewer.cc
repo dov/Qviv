@@ -566,6 +566,13 @@ void QvivImageViewer::mouseReleaseEvent (QMouseEvent *event)
   	if (d->last_pan_anchor_x>0 && d->last_pan_anchor_y > 0)
   	    this->zoom_translate((int)(d->last_pan_anchor_x-x),
                                  (int)(d->last_pan_anchor_y-y));
+
+        // Redraw entire widget to cause repaint of annotations
+        d->view_changed(true,
+                        d->current_scale_x,
+                        d->current_scale_y,
+                        d->current_x0,
+                        d->current_y0);
     }
 }
 
@@ -1071,6 +1078,11 @@ void QvivImageViewer::set_scroll_area(double scroll_min_x,
     d->scroll_max_y = scroll_max_y;
     d->scroll_width = d->scroll_max_x - d->scroll_min_x;
     d->scroll_height = d->scroll_max_y - d->scroll_min_y;
+}
+
+bool QvivImageViewer::get_mouse_scrolling(void)
+{
+  return d->is_mouse_scrolling;
 }
 
 // Scale and replicate an image. 

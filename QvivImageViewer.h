@@ -57,13 +57,16 @@ public:
 
 
     // Get a pointer to the current image
-    QImage *get_image();
+    QImage *get_image(void);
 
     // Set the scroll area - This is ignored if an image is being used
     void set_scroll_area(double scroll_min_x,
                          double scroll_min_y,
                          double scroll_max_x,
                          double scroll_max_y);
+
+    // Check if we are doing mouse dragging
+    bool get_mouse_scrolling(void);
 
 protected:
     void paintEvent(QPaintEvent * event);

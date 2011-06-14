@@ -76,6 +76,9 @@ file:scale-and-offset.svg
    - [X] Fixed include errors on windows.
    - [X] Balloon steals focus. How can I can I make it not do that?
    - [X] Clicking in window puts main window in front. Need to raise balloon window.
+** Regarding Qt painter vs Agg:
+   - http://qtnode.net/wiki/Agg_painting
+   - [[http://swik.net/Trolltech/Trolltech+Labs+Blogs/Qt+Graphics+and+Performance+-+The+Raster+Engine/dfwcx][Blog post about the birth of the Qt painting engine and how it was inspired by agg]].
 ** Done/Todo  
    - [ ] Drawing label image for balloons.
    - [ ] Renderer class so support both normal rendering and balloon rendering like in Giv.
@@ -85,8 +88,5 @@ file:scale-and-offset.svg
      - [X] Scrolling creates black lines.
      - [X] With image, scroll region should be ignored. It is not!
      - [X] Moving the balloon popup causes complete repaint of background. This is too slow! Need to use backingstore. Ok. Erased calls to ~setUpdatesEnabled(true)~;
-   - [ ] Don't redraw on middle mouse grab and paning.
+   - [X] Don't redraw on middle mouse grab and panning.
 
-** Regarding Qt painter vs Agg:
-   - http://qtnode.net/wiki/Agg_painting
-   - [[http://swik.net/Trolltech/Trolltech+Labs+Blogs/Qt+Graphics+and+Performance+-+The+Raster+Engine/dfwcx][Blog post about the birth of the Qt painting engine and how it was inspired by agg]].
