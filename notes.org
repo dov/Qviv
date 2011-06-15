@@ -93,6 +93,8 @@ file:scale-and-offset.svg
 ** Done/Todo
    - [X] Copied and merged the renderer and painter concepts from giv.
    - [X] Changed drawing to use the ~QvivPainterAgg~ class.
-   - [ ] Add painting of label image.
-   - [ ] Change balloon to use label image.
-   
+   - [X] Add painting of label image.
+     - [X] Rewrite to support to handle balloon per point.
+   - [X] Change balloon to use label image.
+   - [ ] Support balloon per dataset? Do I need that?
+   - [ ] Test polygons and lines.

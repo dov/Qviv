@@ -39,6 +39,7 @@ QvivRenderer::QvivRenderer(QvivData *_data,
 void QvivRenderer::paint()
 {
     const double cs = 1.0/65535;
+    int prev_balloon_idx = -1;
     
     for (int ds_idx=0; ds_idx<(int)data->data_sets.size(); ds_idx++) {
         QvivDataSet *dataset = &data->data_sets[ds_idx];
@@ -103,6 +104,13 @@ void QvivRenderer::paint()
 
                     double m_x = pt.x * scale_x - shift_x;
                     double m_y = pt.y * scale_y - shift_y;
+                    int balloon_idx = pt.balloon_index;
+
+                    if (balloon_idx!=prev_balloon_idx)
+                    {
+                      painter.set_set_idx(balloon_idx);
+                      prev_balloon_idx = balloon_idx;
+                    }
 
                     if (i < 2 && pt.op == OP_DRAW) {
                         double cx0=old_x, cy0=old_y, cx1=m_x, cy1=m_y;
@@ -193,7 +201,15 @@ void QvivRenderer::paint()
                     painter.add_mark(mark_type,
                                      mark_size_x, mark_size_y,
                                      m_x, m_y);
-                    need_paint = true;
+
+                    if (pt.balloon_index!=prev_balloon_idx)
+                    {
+                      painter.set_set_idx(pt.balloon_index);
+                      prev_balloon_idx = pt.balloon_index;
+                      painter.draw_marks();
+                    }
+                    else
+                      need_paint = true;
                 }
                 if (need_paint)
                     painter.draw_marks();

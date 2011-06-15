@@ -35,19 +35,19 @@ class QvivPoint
   public:
     QvivPoint(QvivOp op,
               double x, double y,
-              int ballon_index=-1)
+              int balloon_index=-1)
     {
         this->op = op;
         this->x = x;
         this->y = y;
-        this->ballon_index = ballon_index;
+        this->balloon_index = balloon_index;
     }
     QvivOp op;
     double x,y;
-    int ballon_index;
+    int balloon_index;
 };
 
-// A balloon manager
+// A balloon manager. 
 class QvivBalloons
 {
   private:
@@ -55,7 +55,7 @@ class QvivBalloons
 
   public:
     ~QvivBalloons();
-    void add_balloon(const char *balloon_string);
+    int add_balloon(const char *balloon_string);
     const char *get_balloon_text(int balloon_index);
 };
 

@@ -67,6 +67,12 @@ public:
 
     // Check if we are doing mouse dragging
     bool get_mouse_scrolling(void);
+    void get_scale_and_shift(double &scale_x,
+                             double &scale_y,
+                             int& shift_x,
+                             int& shift_y);
+    // Force a redraw
+    void redraw();
 
 protected:
     void paintEvent(QPaintEvent * event);

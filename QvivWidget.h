@@ -12,9 +12,10 @@ public:
     QvivWidget(QWidget *parent,
                QImage image );
     ~QvivWidget();
-    void set_qviv_data(QvivData& qviv_data);
+    void set_qviv_data(QvivData *qviv_data);
 
 protected:
+    void keyPressEvent (QKeyEvent * event);
     void imageAnnotate(QImage*, int, int, double, double);
     void mouseMoveEvent (QMouseEvent *event);
     void leaveEvent(QEvent *event);

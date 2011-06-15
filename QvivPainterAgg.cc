@@ -278,8 +278,8 @@ QvivPainterAgg::add_text(const char *text,
     cairo_fill(d->cr);
 #endif
     
-    return 0;
 #endif
+    return 0;
 }
 
 int QvivPainterAgg::add_line_segment(double x0, double y0,
@@ -461,11 +461,11 @@ QvivPainterAgg::set_arrow(bool do_start_arrow,
 
 void
 QvivPainterAgg::label_to_color(int label,
-                              // output
-                              double& rr,
-                              double& gg,
-                              double& bb
-                              )
+                               // output
+                               double& rr,
+                               double& gg,
+                               double& bb
+                               )
 {
     bb = 1.0/255*((label+1) % 256);
     gg = 1.0/255*(((label+1) >> 8) % 256);

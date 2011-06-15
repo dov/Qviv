@@ -69,29 +69,34 @@ MyApp::MyApp(int argc, char *argv[])
                     {187, 176}};
 
     // Add some points
-    QvivData data;
+    QvivData *data = new QvivData;
+    data->balloons.add_balloon("Dataset A");
+    data->balloons.add_balloon("Dataset B");
+    data->balloons.add_balloon("Dataset C");
+    data->balloons.add_balloon("Dataset D");
+    data->balloons.add_balloon("Dataset E");
     QvivDataSet data_set(QvivColor(0x00ff00ff),10);
 
     for (int i=0; i<5; i++) 
-        data_set.add_point(OP_MOVE, points[i].x,points[i].y);
-    data.data_sets.push_back(data_set);
+        data_set.add_point(OP_MOVE, points[i].x,points[i].y,1);
+    data->data_sets.push_back(data_set);
     
     QvivDataSet data_set1(QvivColor(0xff0000ff),5);
     for (int i=0; i<5; i++) 
-        data_set1.add_point(OP_MOVE, points[i].x-2,points[i].y);
-    data.data_sets.push_back(data_set1);
+      data_set1.add_point(OP_MOVE, points[i].x-2,points[i].y,2);
+    data->data_sets.push_back(data_set1);
 
     QvivDataSet data_set2(QvivColor(0xffa500ff),3);
     for (int i=0; i<5; i++) 
-        data_set2.add_point(OP_MOVE, points[i].x+2,points[i].y);
-    data.data_sets.push_back(data_set2);
+      data_set2.add_point(OP_MOVE, points[i].x+2,points[i].y,3);
+    data->data_sets.push_back(data_set2);
 
     // Create a large dataset.
     QvivDataSet data_set_large(QvivColor(0x80606040));
     int n = 100;
     for (int i=0; i<n*n; i++)
-      data_set_large.add_point(OP_MOVE, 181+1.0/n*(i%n), 171+1.0/n*(i/n));
-    data.data_sets.push_back(data_set_large);
+      data_set_large.add_point(OP_MOVE, 181+1.0/n*(i%n), 171+1.0/n*(i/n),0);
+    data->data_sets.push_back(data_set_large);
 
     //    painter.drawEllipse(-15,-15,30,30);
     d->w_imgv->set_qviv_data(data);

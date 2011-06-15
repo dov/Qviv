@@ -7,16 +7,16 @@
 #include "QvivData.h"
 #include <malloc.h>
 
-
 QvivBalloons::~QvivBalloons()
 {
     for (int i=0; i<(int)balloon_strings.size(); i++)
         free(balloon_strings[i]);
 }
 
-void QvivBalloons::add_balloon(const char *balloon_string)
+int QvivBalloons::add_balloon(const char *balloon_string)
 {
     balloon_strings.push_back(strdup(balloon_string));
+    return balloon_strings.size()-1;
 }
 
 const char *QvivBalloons::get_balloon_text(int balloon_index)
