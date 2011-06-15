@@ -70,24 +70,24 @@ MyApp::MyApp(int argc, char *argv[])
 
     // Add some points
     QvivData data;
-    QvivDataSet data_set(QColor(0,255,0),5);
+    QvivDataSet data_set(QvivColor(0x00ff00ff),10);
 
     for (int i=0; i<5; i++) 
         data_set.add_point(OP_MOVE, points[i].x,points[i].y);
     data.data_sets.push_back(data_set);
     
-    QvivDataSet data_set1(QColor(255,0,0),5);
+    QvivDataSet data_set1(QvivColor(0xff0000ff),5);
     for (int i=0; i<5; i++) 
         data_set1.add_point(OP_MOVE, points[i].x-2,points[i].y);
     data.data_sets.push_back(data_set1);
 
-    QvivDataSet data_set2(QColor("#FFA500"),3);
+    QvivDataSet data_set2(QvivColor(0xffa500ff),3);
     for (int i=0; i<5; i++) 
         data_set2.add_point(OP_MOVE, points[i].x+2,points[i].y);
     data.data_sets.push_back(data_set2);
 
     // Create a large dataset.
-    QvivDataSet data_set_large(QColor("#806060"));
+    QvivDataSet data_set_large(QvivColor(0x80606040));
     int n = 100;
     for (int i=0; i<n*n; i++)
       data_set_large.add_point(OP_MOVE, 181+1.0/n*(i%n), 171+1.0/n*(i/n));

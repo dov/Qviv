@@ -3,6 +3,6 @@
 }
 
 HEADERS = QvivImageViewer.h MyApp.h
-SOURCES = test-qviv-image-viewer.cc QvivImageViewer.cc
+SOURCES = test-qviv-image-viewer.cc QvivImageViewer.cc 
 CONFIG += qt debug 
 

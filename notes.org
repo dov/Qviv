@@ -89,4 +89,10 @@ file:scale-and-offset.svg
      - [X] With image, scroll region should be ignored. It is not!
      - [X] Moving the balloon popup causes complete repaint of background. This is too slow! Need to use backingstore. Ok. Erased calls to ~setUpdatesEnabled(true)~;
    - [X] Don't redraw on middle mouse grab and panning.
-
+* <2011-06-15 Wed>
+** Done/Todo
+   - [X] Copied and merged the renderer and painter concepts from giv.
+   - [X] Changed drawing to use the ~QvivPainterAgg~ class.
+   - [ ] Add painting of label image.
+   - [ ] Change balloon to use label image.
+   

@@ -12,12 +12,15 @@
 #include <stdio.h>
 #include "QvivWidget.h"
 #include "QvivData.h"
+#include "QvivRenderer.h"
+#include "QvivPainterAgg.h"
 
 class QvivWidget::Priv
 {
 public:
     QLabel* w_balloon;
     QvivData qviv_data;
+    bool do_no_transparency;
 };
 
 QvivWidget::QvivWidget(QWidget *parent,
@@ -31,6 +34,7 @@ QvivWidget::QvivWidget(QWidget *parent,
                               |Qt::X11BypassWindowManagerHint
                               |Qt::ToolTip);
     d->w_balloon->setStyleSheet("QLabel { background-color : yellow; color : black; }");
+    d->do_no_transparency = false;
 }
 
 QvivWidget::~QvivWidget()
@@ -50,14 +54,27 @@ void QvivWidget::imageAnnotate(QImage *image,
     if (get_mouse_scrolling())
         return;
 
+    QvivPainterAgg qviv_painter(image,true);
+    QvivRenderer renderer(&d->qviv_data, qviv_painter,
+                          scale_x, scale_y,
+                          shift_x, shift_y,
+                          image->width(), image->height());
+    renderer.set_do_no_transparency(d->do_no_transparency);
+    renderer.paint();
+
+#if 0
     QPainter painter(image);
     painter.setRenderHint(QPainter::Antialiasing, true);
 
     for (int ds_idx=0; ds_idx<(int)d->qviv_data.data_sets.size(); ds_idx++) {
         QvivDataSet& ds = d->qviv_data.data_sets[ds_idx];
-        QPen pen(ds.color, 0);   // 0 is the stroke width
+        QPen pen(QColor(ds.color.red>>8,
+                        ds.color.green>>8,
+                        ds.color.blue>>8), 0);   // 0 is the stroke width
         painter.setPen(Qt::NoPen);  // Don't stroke
-        painter.setBrush(ds.color); // this is the fill color
+        painter.setBrush(QColor(ds.color.red>>8,
+                                ds.color.green>>8,
+                                ds.color.blue>>8)); // this is the fill color
 
         for (int i=0; i<(int)ds.points.size(); i++) {
             QvivPoint& pt=ds.points[i];
@@ -67,7 +84,9 @@ void QvivWidget::imageAnnotate(QImage *image,
             painter.drawEllipse(x-5,y-5,10,10);
         }
     }
+#endif
 }
+
 
 void QvivWidget::mouseMoveEvent (QMouseEvent *event)
 {
