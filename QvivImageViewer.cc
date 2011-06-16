@@ -40,10 +40,10 @@ public:
     QImage image;
     double current_scale_x;
     double current_scale_y;
-    int current_x0;
-    int current_y0;
-    int scroll_width;
-    int scroll_height;
+    double current_x0;
+    double current_y0;
+    double scroll_width;
+    double scroll_height;
     double scroll_min_x;
     double scroll_min_y;
     double scroll_max_x;
@@ -729,15 +729,15 @@ QvivImageViewer::Priv::view_changed(int do_force,
             || scale_y != this->current_scale_y
             || x0 != this->current_x0
             || y0 != this->current_y0))
-      {
-        /* Remember the current transform */
-        this->current_scale_x = scale_x;
-        this->current_scale_y = scale_y;
-        this->current_x0 = (int)x0;
-        this->current_y0 = (int)y0;
-
-        widget->viewport()->update();
-      }
+  {
+      /* Remember the current transform */
+      this->current_scale_x = scale_x;
+      this->current_scale_y = scale_y;
+      this->current_x0 = (int)x0;
+      this->current_y0 = (int)y0;
+      
+      widget->viewport()->update();
+  }
 
   // Update scrollbars
   QSize areaSize = widget->viewport()->size();
@@ -760,7 +760,7 @@ QvivImageViewer::Priv::view_changed(int do_force,
   widget->verticalScrollBar()->setPageStep(scroll_height);
   widget->verticalScrollBar()->setRange(0, scroll_height*scale_y - areaSize.height());
   widget->verticalScrollBar()->setValue(y0);
-
+      
   return 1;
 }
 
@@ -811,8 +811,8 @@ QvivImageViewer::zoom_around_fixed_point(double new_scale_x,
         new_y = cnv_h - new_y;
     }
     
-    new_x0 = new_scale_x/old_scale_x * (old_x + old_x0) - new_x;
-    new_y0 = new_scale_y/old_scale_y * (old_y + old_y0) - new_y;
+    new_x0 = new_scale_x/old_scale_x * (old_x + old_x0) - new_x+0.5;
+    new_y0 = new_scale_y/old_scale_y * (old_y + old_y0) - new_y+0.5;
     
     DBG(printf("old_x0 new_x0 = %f %f\n", old_x0, new_x0));
     d->view_changed(FALSE, new_scale_x, new_scale_y, new_x0, new_y0);
@@ -927,8 +927,8 @@ int QvivImageViewer::zoom_to_box(double world_min_x,
             new_scale_y = new_scale_x;
     }
     // This works for both flip and not flip!
-    double new_x0 = new_scale_x*0.5*(world_max_x+world_min_x)-w/2;
-    double new_y0 = new_scale_y*0.5*(world_max_y+world_min_y)-h/2;
+    int new_x0 = int(new_scale_x*0.5*(world_max_x+world_min_x)-w/2+0.5);
+    int new_y0 = int(new_scale_y*0.5*(world_max_y+world_min_y)-h/2+0.5);
 
     d->view_changed(false, new_scale_x, new_scale_y, new_x0, new_y0);
       
@@ -998,8 +998,8 @@ void QvivImageViewer::keyPressEvent (QKeyEvent * event)
 // Map scrollbar changes to internal view changes
 void QvivImageViewer::scrollContentsBy (int /*dx*/, int /*dy*/)
 {
-    double x0 = 0;
-    double y0 = 0;
+    int x0 = 0;
+    int  y0 = 0;
     if (d->image.width()==0) {
         x0 = d->scroll_min_x*d->current_scale_x;
         y0 = d->scroll_min_y*d->current_scale_y;
