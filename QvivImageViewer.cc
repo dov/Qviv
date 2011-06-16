@@ -1114,7 +1114,7 @@ static QImage pixelScaleReplicate(QImage img_in,
   QImage img_out(width_out,height_out,img_in.format());
   for (int row_idx=0; row_idx<height_in; row_idx++) {
     for (int rs_idx=0; rs_idx<scale_y; rs_idx++) {
-      const uchar *src=img_in.constScanLine(row_idx);
+      uchar *src=img_in.scanLine(row_idx);
       uchar *dst=img_out.scanLine(row_idx*scale_y+rs_idx);
 
       for (int col_idx=0; col_idx<width_in; col_idx++) {
