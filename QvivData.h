@@ -30,6 +30,15 @@ enum QvivArrowType
     ARROW_TYPE_BOTH=3
 };
 
+class BalloonIndexToStringResolver {
+  public:
+    BalloonIndexToStringResolver() {}
+    virtual ~BalloonIndexToStringResolver() {}
+
+    // Turns the pointer into a string and adds it to the file
+    virtual char *getString(int balloon_index) = 0;
+};
+
 class QvivPoint
 {
   public:
@@ -45,6 +54,7 @@ class QvivPoint
     QvivOp op;
     double x,y;
     int balloon_index;
+    
 };
 
 // A balloon manager. 
@@ -52,11 +62,18 @@ class QvivBalloons
 {
   private:
     std::vector<char*> balloon_strings;
+    BalloonIndexToStringResolver *resolver;
 
   public:
+    QvivBalloons(BalloonIndexToStringResolver *_resolver=NULL)
+        : resolver(_resolver) {}
     ~QvivBalloons();
     int add_balloon(const char *balloon_string);
-    const char *get_balloon_text(int balloon_index);
+    char *get_balloon_text(int balloon_index);
+    void setResolver(BalloonIndexToStringResolver *_resolver=NULL)
+    {
+        resolver = _resolver;
+    }
 };
 
 struct QvivColor {

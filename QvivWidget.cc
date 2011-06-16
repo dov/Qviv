@@ -90,6 +90,7 @@ void QvivWidget::imageAnnotate(QImage *image,
                               width(), height());
         renderer.set_do_no_transparency(d->do_no_transparency);
         renderer.paint();
+        d->label_image.save("/tmp/label.png");
     }
 }
 
@@ -103,16 +104,16 @@ void QvivWidget::mouseMoveEvent (QMouseEvent *event)
     if (!d->do_show_balloon)
         return;
 
-    int label_color = d->label_image.pixel(event->x(),event->y());
+    unsigned int label_color = d->label_image.pixel(event->x(),event->y());
     
     // TBD - Move this a common place
-    int label = (((label_color >> 16)&0xff)
-                 +(((label_color >> 8)&0xff)<<8)
-                 +((label_color & 0xff) << 24));
+    unsigned int label = (((label_color >> 16)&0xff)
+                          +(((label_color >> 8)&0xff)<<8)
+                          +((label_color & 0xff) << 16));
 
     if (label > 0)
     {
-        const char *balloon_text = d->qviv_data->balloons.get_balloon_text(label-1);
+        char *balloon_text = d->qviv_data->balloons.get_balloon_text(label-1);
         if (balloon_text)
         {
           d->w_balloon->setText(balloon_text);
@@ -120,6 +121,7 @@ void QvivWidget::mouseMoveEvent (QMouseEvent *event)
           d->w_balloon->move(window()->geometry().x()+event->x()+5,
                              window()->geometry().y()+event->y()-d->w_balloon->geometry().height()-5);
           d->w_balloon->show();
+          free(balloon_text);
         }
     }
     else
@@ -144,6 +146,11 @@ void QvivWidget::keyPressEvent (QKeyEvent * event)
             redraw();
         else
             d->w_balloon->hide();
+    }
+    else if (k=="a")
+    {
+        d->do_no_transparency= !d->do_no_transparency;
+        redraw();
     }
 }
 
