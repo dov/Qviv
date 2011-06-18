@@ -59,6 +59,8 @@ public:
     int last_pan_anchor_x;
     int last_pan_anchor_y;
     bool first_time; // Used in resize to fill image on first resize
+    int cnv_w;       // Caching of previous canvas width
+    int cnv_h;       // Caching of previous canvas height
 
     int view_changed(int do_force,
                      double scale_x,
@@ -79,6 +81,8 @@ QvivImageViewer::QvivImageViewer(QWidget *parent,
     d->image = image;
     d->scroll_width = image.width();
     d->scroll_height = image.height();
+    d->cnv_h = 0;
+    d->cnv_w = 0;
     if (d->scroll_width == 0)
       d->scroll_width = 256;
     if (d->scroll_height == 0)
@@ -167,7 +171,7 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
         int img_y1 = cnv_h;
         img_w = d->image.width();
         img_h = d->image.height();
-        DBG(fprintf(stderr, "current_x0 exp_x0 offs_x = %d %d %d\n",
+        DBG(fprintf(stderr, "current_x0 exp_x0 offs_x = %d %d %f\n",
                     d->current_x0,
                     exp_x0,
                     offs_x));
@@ -400,7 +404,7 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
                 offs_y = trans_offs_y = -d->current_y0-exp_y0;
         }
   
-        DBG(fprintf(stderr, "dst_x dst_y copy_w copy_h offs_x offs_y = %d %d %d %d %d %d\n",
+        DBG(fprintf(stderr, "dst_x dst_y copy_w copy_h offs_x offs_y = %d %d %d %d %f %f\n",
   	      dst_x, dst_y, copy_w, copy_h,
   	      d->current_x0, d->current_y0));
 
@@ -484,7 +488,7 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
           offs_x = d->current_x0+w-exp_x1+cnv_w;
         else
           offs_x = -d->current_x0-exp_x0;
-        DBG(printf("No image: current_x0=%d offs_x = %d\n", d->current_x0, offs_x));
+        DBG(printf("No image: current_x0=%f offs_x = %d\n", d->current_x0, offs_x));
         if (d->do_flip_vertical)
           offs_y = d->current_y0+h-exp_y1+cnv_h;
         else
@@ -958,15 +962,93 @@ void QvivImageViewer::resizeEvent ( QResizeEvent * /*event */)
     if (d->first_time) {
         zoom_fit();
         d->first_time= false;
+        d->cnv_w = width();
+        d->cnv_h = height();
+        return;
     }
+
+    double scale_factor = 1;
+    int cnv_w = width();
+    int cnv_h = height();
+    if (cnv_w == d->cnv_w
+        && cnv_h == d->cnv_h)
+        return;
+
+    int sh = d->image.height();
+    if (sh == 0)
+        sh = d->scroll_height;
+    int sw = d->image.width();
+
+    if (sw==0)
+        sw = d->scroll_width;
+    if (d->cnv_w > 0)
+        scale_factor = 1.0*cnv_w/d->cnv_w;
+
+#if 0
+    if (scale_factor * d->current_scale_x * sw < cnv_w)
+        scale_factor = cnv_w / sw / d->current_scale_x;
+#endif
+    DBG(printf("sw scale_factor cnv_w d->cnv_w = %d  %f %d %d\n", sw, scale_factor,cnv_w, d->cnv_w));
+    
+    double scale_factor_y = 1;
+    if (d->cnv_h > 0)
+        scale_factor_y = 1.0*cnv_h/d->cnv_h;
+
+#if 0
+    if (scale_factor_y * d->current_scale_y * sh < cnv_h)
+        scale_factor_y = cnv_h/sh/d->current_scale_y;
+#endif
+
+    if (scale_factor_y < scale_factor)
+        scale_factor = scale_factor_y;
+
+    DBG(printf("scaling by %f %f\n", scale_factor, scale_factor_y));
+    d->current_scale_x *= scale_factor;
+    d->current_scale_y *= scale_factor;
+    d->current_x0 *= scale_factor;
+    d->current_y0 *= scale_factor;
+
+    /* Update current_x0 and current_y0 to center data if the
+     * new size is wider than scale * image size.
+     */
+    {
+        double scale_x = d->current_scale_x;
+        double scale_y = d->current_scale_y;
+        double img_w = sw * scale_x;
+        double img_h = sh * scale_y;
+  
+        DBG(fprintf(stderr,"Resize: x0 y0 img_w img_h cnv_w cnv_h = %d %d %f %f %d %d\n",
+                    d->current_x0,d->current_y0,img_w,img_h,cnv_w,cnv_h));
+  
+        if (cnv_w > img_w)
+          d->current_x0 = -(cnv_w-img_w)/2+d->scroll_min_x*scale_x;
+        else if (d->cnv_w > img_w)
+          d->current_x0 = d->scroll_min_x*scale_x;
+        else if (img_w - d->current_x0 < cnv_w) {
+            DBG(fprintf(stderr, "Resize case 3X\n"));
+            d->current_x0 = img_w-cnv_w+d->scroll_min_x*scale_x;
+        }
+        if (cnv_h > img_h)
+          d->current_y0 = -(cnv_h-img_h)/2+d->scroll_min_y*scale_y;
+        else if (d->cnv_h > img_h)
+          d->current_y0 = d->scroll_min_y*scale_y;
+        else if (img_h - d->current_y0 < cnv_h) {
+            DBG(fprintf(stderr, "Resize case 3Y\n"));
+            d->current_y0 = img_h-cnv_h+d->scroll_min_y*scale_y;
+        }
+    }
+    d->cnv_h = cnv_h;
+    d->cnv_w = cnv_w;
 }
 
 void QvivImageViewer::wheelEvent (QWheelEvent *event)
 {
-    if (event->delta() < 0)
-        zoom_out(event->x(),event->y(),1.1);
-    else
-        zoom_in(-1,-1,1.1);
+    int delta=event->delta();
+    int num_steps = abs(delta/120);
+    if (delta < 0) 
+        zoom_out(event->x(),event->y(),::pow(1.1,num_steps));
+    else 
+        zoom_in(-1,-1,::pow(1.1,num_steps));
 }
 
 void QvivImageViewer::keyPressEvent (QKeyEvent * event)

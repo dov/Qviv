@@ -98,3 +98,12 @@ file:scale-and-offset.svg
    - [X] Change balloon to use label image.
    - [ ] Support balloon per dataset? Do I need that?
    - [ ] Test polygons and lines.
+* <2011-06-17 Fri>
+** Done/Todo
+   - [X] Fixed bug in balloon geometry.
+   - [ ] Zoom on widget resize. Started not finished.
+* <2011-06-18 Sat>
+  - [X] Fixed widget resize on scaling.
+  - [ ] Fix fill of image. See ~#ifdef 0~
+  - [X] Figure out why zooming is slow by scroll wheel compared to giv.
+  - [X] Made "m" toggle marks in ~QvivWidget~.

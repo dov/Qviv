@@ -23,6 +23,7 @@ public:
     QvivData *qviv_data;
     bool do_no_transparency;
     bool do_show_balloon;
+    bool do_show_marks;
 };
 
 QvivWidget::QvivWidget(QWidget *parent,
@@ -38,6 +39,7 @@ QvivWidget::QvivWidget(QWidget *parent,
     d->w_balloon->setStyleSheet("QLabel { background-color : yellow; color : black; }");
     d->do_no_transparency = false;
     d->do_show_balloon = false;
+    d->do_show_marks = true;
 }
 
 QvivWidget::~QvivWidget()
@@ -57,6 +59,8 @@ void QvivWidget::imageAnnotate(QImage *image,
     if (get_mouse_scrolling())
         return;
 
+    if (!d->do_show_marks)
+        return;
     QvivPainterAgg qviv_painter(image,true);
     QvivRenderer renderer(d->qviv_data, qviv_painter,
                           scale_x, scale_y,
@@ -118,8 +122,8 @@ void QvivWidget::mouseMoveEvent (QMouseEvent *event)
         {
           d->w_balloon->setText(balloon_text);
           d->w_balloon->adjustSize();
-          d->w_balloon->move(window()->geometry().x()+event->x()+5,
-                             window()->geometry().y()+event->y()-d->w_balloon->geometry().height()-5);
+          d->w_balloon->move(window()->geometry().x()+x()+event->x()+5,
+                             window()->geometry().y()+y()+event->y()-d->w_balloon->geometry().height()-5);
           d->w_balloon->show();
           free(balloon_text);
         }
@@ -150,6 +154,11 @@ void QvivWidget::keyPressEvent (QKeyEvent * event)
     else if (k=="a")
     {
         d->do_no_transparency= !d->do_no_transparency;
+        redraw();
+    }
+    else if (k=="m")
+    {
+        d->do_show_marks= !d->do_show_marks;
         redraw();
     }
 }
