@@ -78,7 +78,7 @@ MyApp::MyApp(int argc, char *argv[])
     QvivDataSet data_set(QvivColor(0x00ff00ff),10);
 
     for (int i=0; i<5; i++) 
-        data_set.add_point(OP_MOVE, points[i].x,points[i].y,1);
+        data_set.add_point(OP_DRAW, points[i].x,points[i].y,1);
     data->data_sets.push_back(data_set);
     
     QvivDataSet data_set1(QvivColor(0xff0000ff),5);
@@ -95,7 +95,12 @@ MyApp::MyApp(int argc, char *argv[])
     QvivDataSet data_set_large(QvivColor(0x80606040));
     int n = 100;
     for (int i=0; i<n*n; i++)
-      data_set_large.add_point(OP_MOVE, 181+1.0/n*(i%n), 171+1.0/n*(i/n),0);
+    {
+      QString s;
+      s.sprintf("Dataset A, i=%d",i);
+      int balloon_idx = data->balloons.add_balloon(s.toAscii());
+      data_set_large.add_point(OP_MOVE, 181+1.0/n*(i%n), 171+1.0/n*(i/n),balloon_idx);
+    }
     data->data_sets.push_back(data_set_large);
 
     //    painter.drawEllipse(-15,-15,30,30);

@@ -25,6 +25,7 @@ enum QvivMarkType
 
 enum QvivArrowType
 {
+    ARROW_TYPE_NONE = 0,
     ARROW_TYPE_START=1,
     ARROW_TYPE_END=2,
     ARROW_TYPE_BOTH=3
@@ -122,6 +123,7 @@ class QvivDataSet
         do_scale_fonts = false;
         mark_type = MARK_TYPE_FCIRCLE;
         mark_size = 10;
+        arrow_type = ARROW_TYPE_NONE;
     }
     QvivColor color;
     QvivColor outline_color;

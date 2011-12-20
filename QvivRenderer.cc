@@ -100,7 +100,7 @@ void QvivRenderer::paint()
                     && !dataset->do_draw_polygon_outline)
                     continue;
                 for (int p_idx=0; p_idx<(int)dataset->points.size(); p_idx++) {
-                    QvivPoint& pt=dataset->points[i];
+                    QvivPoint& pt=dataset->points[p_idx];
 
                     double m_x = pt.x * scale_x - shift_x;
                     double m_y = pt.y * scale_y - shift_y;
@@ -124,8 +124,9 @@ void QvivRenderer::paint()
                                                    // output
                                                    &cx0, &cy0, &cx1, &cy1)
                             ) {
-                            painter.add_line_segment(cx0, cy0, cx1, cy1,
-                                                     i==0);
+                            if (p_idx > 0)
+                                painter.add_line_segment(cx0, cy0, cx1, cy1,
+                                                         i==0);
                             need_paint = true;
                         }
                     }
