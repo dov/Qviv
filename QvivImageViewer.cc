@@ -115,6 +115,13 @@ QvivImageViewer::~QvivImageViewer()
     delete d;
 }
 
+void QvivImageViewer::set_image(QImage& image)
+{
+  d->image = image;
+  d->scroll_width = image.width();
+  d->scroll_height = image.height();
+}
+
 QSize QvivImageViewer::sizeHint() const
 {
     if (d->image.width())

@@ -43,12 +43,7 @@ MyApp::MyApp(int argc, char *argv[])
     : QApplication(argc, argv)
 {
     d = new Priv;
-    if (argc>=2) 
-      d->image = new QImage(argv[1]);
-    else
-      d->image = new QImage();
-        
-
+    d->image = new QImage();
     d->window = new QWidget;
     d->w_imgv = new QvivWidget(d->window,*d->image);
 
@@ -107,6 +102,12 @@ MyApp::MyApp(int argc, char *argv[])
     d->w_imgv->set_qviv_data(data);
     d->w_imgv->set_scroll_area(180,170,190,180);
     //d->w_imgv->set_scroll_area(0,0,190,180);
+
+    if (argc>=2) {
+        d->image = new QImage(argv[1]);
+        d->w_imgv->set_image(*(d->image));
+    }
+
     d->w_imgv->zoom_fit();
 }
 

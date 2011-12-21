@@ -59,6 +59,9 @@ public:
     // Get a pointer to the current image
     QImage *get_image(void);
 
+    // Change the image being displayed
+    void set_image(QImage& image);
+
     // Set the scroll area - This is ignored if an image is being used
     void set_scroll_area(double scroll_min_x,
                          double scroll_min_y,
