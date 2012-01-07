@@ -107,3 +107,17 @@ file:scale-and-offset.svg
   - [ ] Fix fill of image. See ~#ifdef 0~
   - [X] Figure out why zooming is slow by scroll wheel compared to giv.
   - [X] Made "m" toggle marks in ~QvivWidget~.
+* <2012-01-07 Sat>
+** Giv parser
+The parser in giv is tighly integrated with the giv datastructures. A cleaner implementation would be to separate the parser from the datastructures and tie them together via a callback method, similar to the callbacks that exist in e.g. [[http://lloyd.github.com/yajl/][yajl]]. 
+  - There is a qt json parser at: http://qjson.sourceforge.net/ which imports to qvariant.
+  - Going via qjson will be slower than native structures, but faster to implement. 
+  - License of qjson is LGPL which is fine.
+  - Strategy:
+    - [ ] qjson integration.
+    - [ ] qvariant import and export of the QvivData structure.
+    - [ ] integration of qjson and QvivData import.
+    - [ ] Native json import via yajl.
+  - About pro files, see: http://stackoverflow.com/questions/1417776/how-to-use-qmakes-subdirs-template
+  - [ ] Note that the building process is currently broken!
+   

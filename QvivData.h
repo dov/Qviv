@@ -125,6 +125,8 @@ class QvivDataSet
         mark_size = 10;
         arrow_type = ARROW_TYPE_NONE;
     }
+    QvivDataSet(QVariantMap& variant);
+
     QvivColor color;
     QvivColor outline_color;
     QvivColor quiver_color;
