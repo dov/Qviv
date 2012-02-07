@@ -119,13 +119,13 @@ class QvivDataSet
         do_scale_marks = false;
         quiver_scale = 1.0;
         font_name = NULL;
-        text_size = 0;
+        font_size_in_points = 16; 
+        text_align = 0;
         do_scale_fonts = false;
         mark_type = MARK_TYPE_FCIRCLE;
         mark_size = 10;
         arrow_type = ARROW_TYPE_NONE;
     }
-    QvivDataSet(QVariantMap& variant);
 
     QvivColor color;
     QvivColor outline_color;
@@ -147,7 +147,8 @@ class QvivDataSet
     bool do_scale_marks;
     double quiver_scale;
     char *font_name;
-    double text_size;
+    int text_align;
+    double font_size_in_points;
     double do_scale_fonts;
 
     void add_point(QvivOp op, double x, double y, int ballon_index=-1)

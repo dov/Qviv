@@ -119,5 +119,18 @@ The parser in giv is tighly integrated with the giv datastructures. A cleaner im
     - [ ] integration of qjson and QvivData import.
     - [ ] Native json import via yajl.
   - About pro files, see: http://stackoverflow.com/questions/1417776/how-to-use-qmakes-subdirs-template
-  - [ ] Note that the building process is currently broken!
-   
+  - [X] Note that the building process is currently broken! *Fixed*.
+* <2012-02-07 Tue>
+** Text support
+To support text I reused the balloon text database and used the balloon string as a text string instead. This means that you cannot have balloons on strings, but that is ok. But it means that the balloon class should be renamed string db as it is no longer exclusively for balloons.
+  - [ ] Rename balloon references to reflect that they may also be text references.
+
+A difference between fonts in gtk and in Qt is that in gtk the name is always a string that contain all information about the font, e.g. "Sans Bold 14". But it seems that in qt you can't embed the fontsize in the fontname but have to specify it separately. This may be solved by abstracting the font and add a parser. But in the first step we will keep the size separately.
+  - [X] Add pointSize to QvivData class. Already there as ~text_size~.
+  - [X] Connect ~text_size~ to painting.
+  - [X] Support for font scaling. Currently only support fixed fonts. (This may involve getting the font outline instead of using QPainter as now).
+
+Text alignment is easily done through QPainter.
+  - [X] Text alignment with the sum of the following values.
+    - Horizontal: 0=left, 1=hcenter, 2=right
+    - Vertical: 0=top, 1=vcenter,2=bottom

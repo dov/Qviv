@@ -21,7 +21,7 @@ class QvivPainter {
                            double blue,
                            double alpha=1.0) = 0;
     virtual int set_line_width(double line_width) = 0;
-    virtual int set_text_size(double text_size) = 0;
+    virtual int set_font_size(double font_size_in_points) = 0;
     virtual int set_font(const char* font) = 0;
     virtual int add_mark(QvivMarkType mark_type,
                          double mark_size_x, double mark_size_y,

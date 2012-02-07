@@ -8,6 +8,7 @@
 #include <math.h>
 #include <string>
 #include <stdio.h>
+#include <QPainter>
 #include "QvivPainterAgg.h"
 #include "agg/agg_rasterizer_scanline_aa.h"
 #include "agg/agg_ellipse.h"
@@ -30,9 +31,10 @@ using namespace std;
 
 class QvivPainterAgg::Priv {
 public:
-    Priv(QImage *pixbuf,
+    Priv(QImage *image,
          bool do_antialiased);
     ~Priv();
+    QImage *image; // Needed for text
     int width;
     int height;
     double stroke_width;
@@ -62,6 +64,7 @@ public:
     bool do_end_arrow;
     double arrow_d1, arrow_d2, arrow_d3, arrow_d4, arrow_d5;
     string font;
+    double font_size_in_points;
     double old_x, old_y;
 #if 0
     PangoFontDescription *font_description;
@@ -73,14 +76,15 @@ public:
 #endif
 };
 
-QvivPainterAgg::Priv::Priv(QImage *image,
+QvivPainterAgg::Priv::Priv(QImage *_image,
                            bool _do_anti_aliased)
-    : width(image->width()),
-      height(image->height()),
-      rbuf(image->bits(),
+    : image(_image),
+      width(_image->width()),
+      height(_image->height()),
+      rbuf(_image->bits(),
            width, 
            height,
-           image->bytesPerLine()),
+           _image->bytesPerLine()),
       set_idx(0),
       red(0),
       green(0),
@@ -148,7 +152,7 @@ QvivPainterAgg::QvivPainterAgg(QImage *image,
                              bool do_antialiased)
 {
     d = new Priv(image, do_antialiased);
-    set_font("Sans 15");
+    set_font("Sans");
 }
 
 QvivPainterAgg::~QvivPainterAgg()
@@ -229,28 +233,36 @@ int QvivPainterAgg::add_mark(QvivMarkType mark_type,
 
 int
 QvivPainterAgg::add_text(const char *text,
-                        double x, double y,
-                        int text_align,
-                        bool do_pango_markup)
+                         double x, double y,
+                         int text_align,
+                         bool /*do_pango_markup*/)
 {
-#if 0
-    // Sorry - no support for text yet. Need to use Qt support
-    if (d->do_paint_by_index) {
-        return 0; // Don't paint text labels...
-#if 0
-        double rr,gg,bb;
-        label_to_color(d->set_idx,
-                       // output and swap bb and rr because of cairo
-                       bb,gg,rr);
-        cairo_set_source_rgba (d->cr, bb,gg,rr,1);
-#endif
-    }
-    else {
-        // Switch colors for red and blue because of the difference
-        // between the PixBuf and the cairo surface order
-        cairo_set_source_rgba (d->cr, d->blue,d->green,d->red,d->alpha);
-    }
+    QPainter qpainter(d->image);
 
+    if (d->do_paint_by_index) 
+        return 0; // Don't paint text labels...
+
+    // Simple left aligned text
+    QPen pen;
+    pen.setColor(QColor(int(255*d->red),
+                        int(255*d->green),
+                        int(255*d->blue),
+                        int(255*d->alpha)));
+    qpainter.setPen(pen);
+    qpainter.setFont(QFont(d->font.c_str(),(int)(d->font_size_in_points)));
+    int flags = Qt::TextDontClip;
+    int halign = text_align%3;
+    int valign = text_align/3;
+    if (halign==1)
+        flags|= Qt::AlignHCenter;
+    else if (halign==2)
+        flags|= Qt::AlignRight;
+    if (valign==1)
+        flags|= Qt::AlignVCenter;
+    else if (halign==1)
+        flags|= Qt::AlignBottom;
+    qpainter.drawText(QRectF(x,y,0,0), flags, text);
+#if 0
     /* Create a PangoLayout, set the font and text */
     PangoRectangle logical_rect;
 
@@ -388,22 +400,17 @@ void QvivPainterAgg::set_do_paint_by_index(bool do_paint_by_index)
 }
   
 int
-QvivPainterAgg::set_text_size(double text_size)
+QvivPainterAgg::set_font_size(double font_size_in_points)
 {
-#if 0
-    if (d->font_description) {
-        pango_font_description_set_size(d->font_description,
-                                        text_size*PANGO_SCALE);
-        pango_layout_set_font_description(d->layout,
-                                          d->font_description);
-    }
-#endif
-
+    d->font_size_in_points = font_size_in_points;
     return 0;
 }
 
 int QvivPainterAgg::set_font(const char* font)
 {
+    d->font = font;
+
+    // tbd - parse the font string to extract fontsize
 #if 0
     if (d->font_description)
         pango_font_description_free(d->font_description);

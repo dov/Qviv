@@ -7,6 +7,7 @@
 #include "QvivData.h"
 #include <malloc.h>
 
+#if 0
 QvivData::QvivDataSet(QVariantMap& variant)
 {
   // color = colorNameToQtColor(variant["color"]);
@@ -40,6 +41,7 @@ QvivData::QvivDataSet(QVariantMap& variant)
   mark_size = 10;
   arrow_type = ARROW_TYPE_NONE;
 }
+#endif
 
 QvivBalloons::~QvivBalloons()
 {

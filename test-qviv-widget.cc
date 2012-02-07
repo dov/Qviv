@@ -103,9 +103,28 @@ MyApp::MyApp(int argc, char *argv[])
     }
     data->data_sets.push_back(data_set_large);
 
+    // Test text
+    int text_id = data->balloons.add_balloon("TopLeft");
+    QvivDataSet text_data_set(QvivColor(0x0000ffff));
+    text_data_set.add_point(OP_TEXT,200,30,text_id);
+    data->data_sets.push_back(text_data_set);
+
+    // Test text Center bottom aligned
+    int text_id2 = data->balloons.add_balloon("CenterBottom");
+    QvivDataSet text_data_set2(QvivColor(0x0080ffff));
+    text_data_set2.text_align = 6+1;
+    text_data_set2.font_size_in_points = 5;
+    text_data_set2.add_point(OP_TEXT,200,30,text_id2);
+    data->data_sets.push_back(text_data_set2);
+
+    // Draw a dot at the same position for comparison
+    QvivDataSet red_dot(QvivColor(0xff0000ff));
+    red_dot.add_point(OP_MOVE,200,30,0);
+    data->data_sets.push_back(red_dot);
+
     //    painter.drawEllipse(-15,-15,30,30);
     d->w_imgv->set_qviv_data(data);
-    d->w_imgv->set_scroll_area(180,170,190,180);
+    //    d->w_imgv->set_scroll_area(180,170,190,180);
     //d->w_imgv->set_scroll_area(0,0,190,180);
     d->w_imgv->zoom_fit();
 }
