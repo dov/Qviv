@@ -35,7 +35,7 @@ class QvivPainterAgg : public QvivPainter {
     virtual void fill();
     virtual void stroke();
     virtual void draw_marks();
-    virtual int set_text_size(double text_size);
+    virtual int set_font_size(double font_size);
     virtual int set_font(const char* font);
     void set_do_paint_by_index(bool do_paint_by_index);
     virtual void set_dashes(int num_dashes,

@@ -16,14 +16,14 @@ clip_line_to_rectangle(double x0, double y0, double x1, double y1,
                        double *cx0, double *cy0, double *cx1, double *cy1);
 
 QvivRenderer::QvivRenderer(QvivData *_data,
-                         QvivPainter& _painter,
-                         double _scale_x,
-                         double _scale_y,
-                         double _shift_x,
-                         double _shift_y,
-                         double _width,
-                         double _height
-                         ) : 
+                           QvivPainter& _painter,
+                           double _scale_x,
+                           double _scale_y,
+                           double _shift_x,
+                           double _shift_y,
+                           double _width,
+                           double _height
+                           ) : 
     data(_data),
     painter(_painter),
     scale_x(_scale_x),
@@ -219,17 +219,17 @@ void QvivRenderer::paint()
         if (need_check_for_text || has_text) {
             if (dataset->font_name)
                 painter.set_font(dataset->font_name);
-            if (dataset->text_size > 0 || dataset->do_scale_fonts) {
+            if (dataset->font_size_in_points > 0 || dataset->do_scale_fonts) {
                 double scale = 1.0;
                 if (dataset->do_scale_fonts)
                     scale = scale_x;
-                double font_size = dataset->text_size * scale;
+                double font_size = dataset->font_size_in_points * scale;
                 // A hack when font size has not been set for a scalable
                 // font!
                 double epsilon = 1e-9;
                 if (font_size < epsilon)
                     font_size = 14 * scale;
-                painter.set_text_size(font_size);
+                painter.set_font_size(font_size);
             }
             painter.set_color(rr,gg,bb,alpha);
             for (int p_idx=0; p_idx<(int)dataset->points.size(); p_idx++) {
@@ -238,6 +238,11 @@ void QvivRenderer::paint()
                 if (pt.op == OP_TEXT) {
                     double m_x = pt.x * scale_x - shift_x;
                     double m_y = pt.y * scale_y - shift_y;
+
+                    // The text is extracted from the balloon db.
+                    char *text = data->balloons.get_balloon_text(pt.balloon_index);
+                    if (text)
+                        painter.add_text(text,m_x,m_y,dataset->text_align,false);
 #if 0
                     const char *text = p.data.text_object->string;
                     int text_align = p.data.text_object->text_align;

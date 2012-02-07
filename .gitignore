@@ -6,3 +6,4 @@ debug/.obj/*
 debug/.moc/*
 /debug/test-balloon
 /debug/test-qviv-widget
+lib

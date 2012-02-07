@@ -11,7 +11,7 @@
  *
  */
 #include <stdio.h>
-#include <QvivWidget.h>
+#include "QvivWidget.h"
 #include <QApplication>
 #include <QPushButton>
 #include <QGraphicsScene>
@@ -19,6 +19,7 @@
 #include <QHBoxLayout>
 #include <QGraphicsRectItem>
 #include <QPaintEvent>
+#include "QvivParser.h"
 
 class MyApp : public QApplication {
 public:

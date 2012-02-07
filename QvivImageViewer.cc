@@ -25,7 +25,7 @@
 #include <math.h>
 #include <stdio.h>
 
-#define DBG(a) 
+#define DBG(a) a
 #define DBG2(a) 
 
 // Scale and replicate an image. 
@@ -178,7 +178,7 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
         int img_y1 = cnv_h;
         img_w = d->image.width();
         img_h = d->image.height();
-        DBG(fprintf(stderr, "current_x0 exp_x0 offs_x = %d %d %f\n",
+        DBG(fprintf(stderr, "current_x0 exp_x0 offs_x = %.1f %d %d\n",
                     d->current_x0,
                     exp_x0,
                     offs_x));
@@ -1024,7 +1024,7 @@ void QvivImageViewer::resizeEvent ( QResizeEvent * /*event */)
         double img_w = sw * scale_x;
         double img_h = sh * scale_y;
   
-        DBG(fprintf(stderr,"Resize: x0 y0 img_w img_h cnv_w cnv_h = %d %d %f %f %d %d\n",
+        DBG(fprintf(stderr,"Resize: x0 y0 img_w img_h cnv_w cnv_h = %.1f %.1f %f %f %d %d\n",
                     d->current_x0,d->current_y0,img_w,img_h,cnv_w,cnv_h));
   
         if (cnv_w > img_w)
