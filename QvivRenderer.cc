@@ -40,7 +40,10 @@ void QvivRenderer::paint()
 {
     const double cs = 1.0/65535;
     int prev_balloon_idx = -1;
-    
+
+    if (!data)
+      return;
+
     for (int ds_idx=0; ds_idx<(int)data->data_sets.size(); ds_idx++) {
         QvivDataSet *dataset = &data->data_sets[ds_idx];
         if (!dataset->is_visible)

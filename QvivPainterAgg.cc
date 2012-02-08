@@ -29,6 +29,13 @@
 
 using namespace std;
 
+// Define NAN which isn't defined by Visual Studio
+#ifdef _MSC_VER
+#include <float.h>
+#define INFINITY (DBL_MAX+DBL_MAX)
+#define NAN (INFINITY-INFINITY)
+#endif
+
 class QvivPainterAgg::Priv {
 public:
     Priv(QImage *image,
@@ -296,7 +303,7 @@ QvivPainterAgg::add_text(const char *text,
 
 int QvivPainterAgg::add_line_segment(double x0, double y0,
                                     double x1, double y1,
-                                    bool do_polygon)
+                                     bool /*do_polygon*/)
 {
     if (d->old_x != x0
         || d->old_y != y0)
@@ -410,15 +417,6 @@ int QvivPainterAgg::set_font(const char* font)
 {
     d->font = font;
 
-    // tbd - parse the font string to extract fontsize
-#if 0
-    if (d->font_description)
-        pango_font_description_free(d->font_description);
-    d->font_description = pango_font_description_from_string(font);
-    pango_layout_set_font_description(d->layout,
-                                      d->font_description);
-
-#endif
     return 0;
 }
 

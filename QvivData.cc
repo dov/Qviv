@@ -45,8 +45,14 @@ QvivData::QvivDataSet(QVariantMap& variant)
 
 QvivBalloons::~QvivBalloons()
 {
-    for (int i=0; i<(int)balloon_strings.size(); i++)
-        free(balloon_strings[i]);
+  clear();
+}
+
+void QvivBalloons::clear(void)
+{
+  for (int i=0; i<(int)balloon_strings.size(); i++)
+    free(balloon_strings[i]);
+  balloon_strings.clear();
 }
 
 int QvivBalloons::add_balloon(const char *balloon_string)

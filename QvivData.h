@@ -70,6 +70,7 @@ class QvivBalloons
         : resolver(_resolver) {}
     ~QvivBalloons();
     int add_balloon(const char *balloon_string);
+    void clear(void);
     char *get_balloon_text(int balloon_index);
     void setResolver(BalloonIndexToStringResolver *_resolver=NULL)
     {
@@ -78,21 +79,14 @@ class QvivBalloons
 };
 
 struct QvivColor {
-    QvivColor(void):
-        red(0xffff),
-        green(0),
-        blue(0),
-        alpha(0xffff) {}
-    QvivColor(unsigned short red,
-              unsigned short green,
-              unsigned short blue,
-              unsigned short alpha);
-    QvivColor(unsigned int color) {
-        red = 256*(color >> 24);
-        green = 256*((color >> 16)&0xff);
-        blue = 256*((color >> 8)&0xff);
-        alpha = 256*(color&0xff);
-    }
+    QvivColor(unsigned short _red = 0xffff,
+              unsigned short _green = 0,
+              unsigned short _blue = 0,
+              unsigned short _alpha = 0) :
+        red(_red),
+        green(_green),
+        blue(_blue),
+        alpha(_alpha) {}
     unsigned short red;
     unsigned short green;
     unsigned short blue;
@@ -159,8 +153,13 @@ class QvivDataSet
 
 struct QvivData
 {
-    std::vector<QvivDataSet> data_sets;
-    QvivBalloons balloons;
+  std::vector<QvivDataSet> data_sets;
+  QvivBalloons balloons;
+
+  void clear(void) {
+    balloons.clear();
+    data_sets.clear();
+  }
 };
 
 #endif /* QVIVDATA */
