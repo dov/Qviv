@@ -372,7 +372,7 @@ void QvivPainterAgg::stroke()
             
             return;
         }
-        color = agg::rgba(d->red,d->green,d->blue,d->alpha);
+        color = agg::rgba(d->blue,d->green,d->red,d->alpha);
     }
     
     if (d->do_dash) {

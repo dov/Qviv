@@ -25,7 +25,7 @@
 #include <math.h>
 #include <stdio.h>
 
-#define DBG(a) a
+#define DBG(a) 
 #define DBG2(a) 
 
 // Scale and replicate an image. 
