@@ -68,8 +68,6 @@ MyApp::MyApp(int argc, char *argv[])
     int balloonA = data->balloons.add_balloon("Dataset A");
     int balloonB = data->balloons.add_balloon("Dataset B");
     int balloonC = data->balloons.add_balloon("Dataset C");
-    int balloonD = data->balloons.add_balloon("Dataset D");
-    int balloonE = data->balloons.add_balloon("Dataset E");
     QvivDataSet data_set(QvivColor(0x00ff00ff),10);
 
     for (int i=0; i<5; i++) 

@@ -5,12 +5,15 @@
 //  Sun Jun 12 02:32:51 2011
 //----------------------------------------------------------------------
 #include "QvivData.h"
+#include "QvivX11Colors.h"
 #include <malloc.h>
 
-#if 0
-QvivData::QvivDataSet(QVariantMap& variant)
+QvivDataSet::QvivDataSet(QVariantMap variant)
 {
-  // color = colorNameToQtColor(variant["color"]);
+  SetDefaultVals();
+
+  if (variant.contains("color"))
+    color = QvivX11Colors::LookupColor(variant["color"].toString().toAscii());
   if (variant.contains("line_width"))
     line_width = variant["line_width"].toFloat();
   if (variant.contains("is_visible"))
@@ -35,13 +38,12 @@ QvivData::QvivDataSet(QVariantMap& variant)
 
   quiver_scale = 1.0;
   font_name = NULL;
-  text_size = 0;
+  font_size_in_points = 16;
   do_scale_fonts = false;
   mark_type = MARK_TYPE_FCIRCLE;
   mark_size = 10;
   arrow_type = ARROW_TYPE_NONE;
 }
-#endif
 
 QvivBalloons::~QvivBalloons()
 {
@@ -72,3 +74,24 @@ char *QvivBalloons::get_balloon_text(int balloon_index)
     return strdup(balloon_strings[balloon_index]);
 }
 
+
+// Create a dataset from a QVariant
+QvivData::QvivData(QVariant variant)
+{
+  if (variant.type() != QVariant::Map)
+    return;
+
+  QVariantMap map = variant.toMap();
+  if (map.contains("data_sets"))
+  {
+    QVariantList DataSets = map["data_sets"].toList();
+    for (QVariantList::iterator it=DataSets.begin(); it!=DataSets.end(); ++it)
+      data_sets.push_back(QvivDataSet(it->toMap()));
+  }
+  if (map.contains("balloons"))
+  {
+    QVariantList BalloonList = map["balloons"].toList();
+    for (QVariantList::iterator it=BalloonList.begin(); it!=BalloonList.end(); ++it)
+      balloons.add_balloon(it->toString().toAscii());
+  }
+}

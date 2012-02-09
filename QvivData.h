@@ -2,8 +2,10 @@
 #ifndef QVIVDATA_H
 #define QVIVDATA_H
 
+#include <QVariant>
 #include <QColor>
 #include <vector>
+#include "QvivColor.h"
 
 enum QvivOp
 {
@@ -78,45 +80,13 @@ class QvivBalloons
     }
 };
 
-struct QvivColor {
-
-  QvivColor(void):
-    red(0xffff),
-    green(0x0000),
-    blue(0x0000),
-    alpha(0xffff) {}
-
-  QvivColor(unsigned short _red,
-            unsigned short _green,
-            unsigned short _blue,
-            unsigned short _alpha = 0xffff) :
-    red(_red),
-    green(_green),
-    blue(_blue),
-    alpha(_alpha) {}
-
-  QvivColor(unsigned int color) {
-    red = 256*(color >> 24);
-    green = 256*((color >> 16)&0xff);
-    blue = 256*((color >> 8)&0xff);
-    alpha = 256*(color&0xff);
-  }
-  
-  unsigned short red;
-  unsigned short green;
-  unsigned short blue;
-  unsigned short alpha;
-};
-
 class QvivDataSet
 {
-  public:
-    QvivDataSet(QvivColor _color=QvivColor(0xff0000ff),
-                double line_width=1.0):
-        color(_color)
+  private:
+    void SetDefaultVals(void)
     {
-        this->color = color;
-        this->line_width = line_width;
+        color = 0xff0000ff;
+        line_width = line_width;
         is_visible = true;
         num_dashes = 0;
         dashes = NULL;
@@ -135,6 +105,15 @@ class QvivDataSet
         mark_size = 10;
         arrow_type = ARROW_TYPE_NONE;
     }
+
+  public:
+    QvivDataSet(QvivColor _color=QvivColor(0xff0000ff),
+                double line_width=1.0)
+    {
+      SetDefaultVals();
+      color = _color;
+    }
+    QvivDataSet(QVariantMap Variant);
 
     QvivColor color;
     QvivColor outline_color;
@@ -166,15 +145,19 @@ class QvivDataSet
     }
 };
 
-struct QvivData
+class QvivData
 {
-  std::vector<QvivDataSet> data_sets;
-  QvivBalloons balloons;
+  public:
+    QvivData(void) {}
+    QvivData(QVariant Variant);
 
-  void clear(void) {
-    balloons.clear();
-    data_sets.clear();
-  }
+    std::vector<QvivDataSet> data_sets;
+    QvivBalloons balloons;
+  
+    void clear(void) {
+      balloons.clear();
+      data_sets.clear();
+    }
 };
 
 #endif /* QVIVDATA */
