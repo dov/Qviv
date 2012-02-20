@@ -43,6 +43,25 @@ QvivDataSet::QvivDataSet(QVariantMap variant)
   mark_type = MARK_TYPE_FCIRCLE;
   mark_size = 10;
   arrow_type = ARROW_TYPE_NONE;
+
+  if (variant.contains("points"))
+  {
+    const QVariantList& points(variant["point"].toList());
+    int num_points = points.size();
+    for (int i=0; i<num_points; i++)
+    {
+      const QVariantMap& point(points[i].toMap());
+      double x = point["x"].toDouble();
+      double y = point["y"].toDouble();
+      QvivOp op = OP_DRAW; // Default
+      if (point.contains("op"))
+        op = QvivOp(point["op"].toInt());
+      int balloon_index = -1;
+      if (point.contains("balloon"))
+        balloon_index = point["balloon"].toInt();
+      this->points.push_back(QvivPoint(op,x,y,balloon_index));
+    }
+  }
 }
 
 QvivBalloons::~QvivBalloons()
@@ -59,19 +78,19 @@ void QvivBalloons::clear(void)
 
 int QvivBalloons::add_balloon(const char *balloon_string)
 {
-    balloon_strings.push_back(strdup(balloon_string));
-    return balloon_strings.size()-1;
+  balloon_strings.push_back(strdup(balloon_string));
+  return balloon_strings.size()-1;
 }
-
+    
 char *QvivBalloons::get_balloon_text(int balloon_index)
 {
-    if (resolver)
-      return resolver->getString(balloon_index);
-
-    if (balloon_index < 0 || balloon_index > (int)balloon_strings.size())
-        return NULL;
-
-    return strdup(balloon_strings[balloon_index]);
+  if (resolver)
+    return resolver->getString(balloon_index);
+  
+  if (balloon_index < 0 || balloon_index > (int)balloon_strings.size())
+    return NULL;
+  
+  return strdup(balloon_strings[balloon_index]);
 }
 
 
