@@ -2,7 +2,8 @@
     error( Couldn't find the common.pri file! )
 }
 
-SOURCES += test-qviv-widget.cc 
+HEADERS += TestPickQvivWidget.h
+SOURCES += TestPickQvivWidget.cc test-pick.cc
 
 CONFIG += qt debug 
 

@@ -86,7 +86,7 @@ class QvivDataSet
     void SetDefaultVals(void)
     {
         color = 0xff0000ff;
-        line_width = line_width;
+        line_width = 1;
         is_visible = true;
         num_dashes = 0;
         dashes = NULL;

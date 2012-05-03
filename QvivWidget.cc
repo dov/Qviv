@@ -9,6 +9,7 @@
 #include <QPainter>
 #include <QPaintEvent>
 #include <QLabel>
+#include <QEventLoop>
 #include <stdio.h>
 #include "QvivWidget.h"
 #include "QvivData.h"
@@ -24,6 +25,9 @@ public:
     bool do_no_transparency;
     bool do_show_balloon;
     bool do_show_marks;
+    bool do_pick_point;
+    QEventLoop *event_loop;
+    QPointF picked_point;
 };
 
 QvivWidget::QvivWidget(QWidget *parent,
@@ -40,6 +44,8 @@ QvivWidget::QvivWidget(QWidget *parent,
     d->do_no_transparency = false;
     d->do_show_balloon = false;
     d->do_show_marks = true;
+    d->qviv_data = NULL;
+    d->do_pick_point = false;
 }
 
 QvivWidget::~QvivWidget()
@@ -94,10 +100,28 @@ void QvivWidget::imageAnnotate(QImage *image,
                               width(), height());
         renderer.set_do_no_transparency(d->do_no_transparency);
         renderer.paint();
-        d->label_image.save("/tmp/label.png");
     }
 }
 
+void QvivWidget::mousePressEvent (QMouseEvent * event)
+{
+    // Allow control zooming by not catching the event when control is pressed
+    if (d->do_pick_point
+        && (event->modifiers() & Qt::ControlModifier)==0
+        && event->button() == 1)
+    {
+        // We got an acceptable picked point. Convert it to
+        // image coordinates and return.
+        double imgx, imgy;
+        canv_coord_to_img_coord(event->x(), event->y(),
+                                // output
+                                imgx, imgy);
+        d->picked_point = QPointF(imgx,imgy);
+        d->event_loop->exit(0);
+        return;
+    }
+    QvivImageViewer::mousePressEvent(event);
+}
 
 void QvivWidget::mouseMoveEvent (QMouseEvent *event)
 {
@@ -115,7 +139,7 @@ void QvivWidget::mouseMoveEvent (QMouseEvent *event)
                           +(((label_color >> 8)&0xff)<<8)
                           +((label_color & 0xff) << 16));
 
-    if (label > 0)
+    if (label_color < 0xff000000 && label > 0)
     {
         char *balloon_text = d->qviv_data->balloons.get_balloon_text(label-1);
         if (balloon_text)
@@ -139,10 +163,13 @@ void QvivWidget::leaveEvent(QEvent *event)
 
 void QvivWidget::keyPressEvent (QKeyEvent * event)
 {
-    QvivImageViewer::keyPressEvent(event);
+    // Abort picking
+    if (d->do_pick_point && event->key() == Qt::Key_Escape)
+        d->event_loop->exit(-1);
 
     QString k = event->text();
 
+    // Toggle balloons
     if (k=="b")
     {
         d->do_show_balloon = !d->do_show_balloon;
@@ -151,15 +178,51 @@ void QvivWidget::keyPressEvent (QKeyEvent * event)
         else
             d->w_balloon->hide();
     }
+    // Toogle anti-aliasing
     else if (k=="a")
     {
         d->do_no_transparency= !d->do_no_transparency;
         redraw();
     }
+    // Toggle the display of overlay
     else if (k=="m")
     {
         d->do_show_marks= !d->do_show_marks;
         redraw();
     }
+
+    QvivImageViewer::keyPressEvent(event);
 }
 
+// Request the user to pick a point from the widget. This is
+// implemented by entering a second eventloop.
+
+int QvivWidget::pick_point(// output
+                           QPointF& picked_point
+                           )
+{
+    d->do_pick_point = true;
+
+    // Change the cursor. Should be configurable
+    setCursor(Qt::CrossCursor);
+
+    // Enter secondary loop and wait for reply
+    QEventLoop event_loop;
+    d->event_loop = &event_loop;
+    int ret = event_loop.exec();
+
+    // Restore cursor to default
+    unsetCursor();
+
+    d->event_loop=NULL;
+    d->do_pick_point = false;
+
+    // If aborted return -1
+    if (ret != 0)
+        return -1;
+
+    // Return the picked point coordinate
+    picked_point = d->picked_point;
+
+    return 0;
+}

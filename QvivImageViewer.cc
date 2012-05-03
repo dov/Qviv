@@ -120,6 +120,7 @@ void QvivImageViewer::set_image(QImage& image)
   d->image = image;
   d->scroll_width = image.width();
   d->scroll_height = image.height();
+  redraw();
 }
 
 QSize QvivImageViewer::sizeHint() const
