@@ -15,17 +15,19 @@
 #include <QLabel>
 #include <QRect>
 #include "QvivImageViewer.h"
-#include "MyApp.h"
+#include "QvivHistogram.h"
+#include "MyHistApp.h"
 
-class MyApp::Priv {
+class MyHistApp::Priv {
 public:
     QWidget *window;
     QvivImageViewer *w_imgv;
+    QvivHistogram *w_histo;
     QImage *image;
     QLabel* w_balloon;
 };
 
-void MyApp::MyImageAnnotate(QImage* image,
+void MyHistApp::MyImageAnnotate(QImage* image,
                             int shift_x, int shift_y,
                             double scale_x, double scale_y)
 {
@@ -41,7 +43,7 @@ void MyApp::MyImageAnnotate(QImage* image,
   painter.drawEllipse(x,y,10,10);
 }
 
-void MyApp::MyMouseMoveEvent (QMouseEvent *event)
+void MyHistApp::MyMouseMoveEvent (QMouseEvent *event)
 {
     static char label_text[100];
     sprintf(label_text, "This is a\nmultiline\n(%d, %d)\nlabel",
@@ -53,14 +55,19 @@ void MyApp::MyMouseMoveEvent (QMouseEvent *event)
     d->w_balloon->move(d->window->geometry().x()+event->x()+15,
                        d->window->geometry().y()+event->y()-15);
     d->w_balloon->show();
+
+    // Get gray level
+    int gl = qGray(d->image->pixel(event->x(),
+                                   event->y()));
+    d->w_histo->setCursorGrayLevel(gl);
 }
 
-void MyApp::MyLeaveEvent(QEvent */*event*/)
+void MyHistApp::MyLeaveEvent(QEvent */*event*/)
 {
     d->w_balloon->hide();
 }
 
-MyApp::MyApp(int argc, char *argv[])
+MyHistApp::MyHistApp(int argc, char *argv[])
     : QApplication(argc, argv)
 {
     d = new Priv;
@@ -73,6 +80,8 @@ MyApp::MyApp(int argc, char *argv[])
 
     d->window = new QWidget;
     d->w_imgv = new QvivImageViewer(d->window,*d->image);
+    d->w_histo = new QvivHistogram(NULL, d->image);
+    d->w_histo->show();
 
     QVBoxLayout *layout = new QVBoxLayout;
     layout->addWidget(d->w_imgv);
@@ -85,8 +94,10 @@ MyApp::MyApp(int argc, char *argv[])
     d->w_balloon = new QLabel(NULL,Qt::FramelessWindowHint);
     d->w_balloon->setStyleSheet("QLabel { background-color : yellow; color : black; }");
 
+#if 0
     d->w_balloon->setText("foo");
     d->w_balloon->show();
+#endif
     d->w_imgv->grabKeyboard(); 
 
     QObject::connect(d->w_imgv,
@@ -101,14 +112,14 @@ MyApp::MyApp(int argc, char *argv[])
                      this, SLOT(MyLeaveEvent(QEvent*)));
 }
 
-MyApp::~MyApp()
+MyHistApp::~MyHistApp()
 {
     delete d;
 }
 
 int main(int argc, char **argv)
 {
-    MyApp app(argc, argv);
+    MyHistApp app(argc, argv);
     return app.exec();
 }
 
