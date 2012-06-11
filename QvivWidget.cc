@@ -6,6 +6,7 @@
 //----------------------------------------------------------------------
 
 #include <QPen>
+#include <QBitmap>
 #include <QPainter>
 #include <QPaintEvent>
 #include <QLabel>
@@ -123,6 +124,15 @@ void QvivWidget::mousePressEvent (QMouseEvent * event)
     QvivImageViewer::mousePressEvent(event);
 }
 
+void QvivWidget::abort_pick_point()
+{
+  if (d->do_pick_point && d->event_loop)
+  {
+    d->do_pick_point = false;
+    d->event_loop->exit(-1);
+  }
+}
+
 void QvivWidget::mouseMoveEvent (QMouseEvent *event)
 {
 
@@ -139,15 +149,21 @@ void QvivWidget::mouseMoveEvent (QMouseEvent *event)
                           +(((label_color >> 8)&0xff)<<8)
                           +((label_color & 0xff) << 16));
 
-    if (label_color < 0xff000000 && label > 0)
+    if (label_color >= 0xff000000 && label > 0)
     {
         char *balloon_text = d->qviv_data->balloons.get_balloon_text(label-1);
+
         if (balloon_text)
         {
           d->w_balloon->setText(balloon_text);
           d->w_balloon->adjustSize();
+          QPoint p = mapToGlobal(QPoint(event->x(), event->y()));
+#if 0
           d->w_balloon->move(window()->geometry().x()+x()+event->x()+5,
                              window()->geometry().y()+y()+event->y()-d->w_balloon->geometry().height()-5);
+#endif
+          d->w_balloon->move(p.x()+5,
+                             p.y()-d->w_balloon->geometry().height()-5);
           d->w_balloon->show();
           free(balloon_text);
         }
@@ -156,7 +172,7 @@ void QvivWidget::mouseMoveEvent (QMouseEvent *event)
       d->w_balloon->hide();
 }
 
-void QvivWidget::leaveEvent(QEvent *event)
+void QvivWidget::leaveEvent(QEvent */*event*/)
 {
     d->w_balloon->hide();
 }
@@ -177,6 +193,7 @@ void QvivWidget::keyPressEvent (QKeyEvent * event)
             redraw();
         else
             d->w_balloon->hide();
+        emit qvivBalloonChanged(d->do_show_balloon);
     }
     // Toogle anti-aliasing
     else if (k=="a")
@@ -188,6 +205,8 @@ void QvivWidget::keyPressEvent (QKeyEvent * event)
     else if (k=="m")
     {
         d->do_show_marks= !d->do_show_marks;
+        emit qvivOverlayChanged(d->do_show_marks);
+
         redraw();
     }
 
@@ -203,8 +222,33 @@ int QvivWidget::pick_point(// output
 {
     d->do_pick_point = true;
 
+    // Create a cross cursor. Must be divisible by 2 on Windows
+    const int Size=32;
+    const int S2 = Size/2;
+    QBitmap Cursor(Size,Size);
+    QBitmap Mask(Size,Size);
+
+    // This is convoluted and could be cleaned up.
+    QPainter CursorPainter(&Cursor);
+    QPainter MaskPainter(&Mask);
+    for (int Row=0; Row<Size; Row++)
+      for (int Col=0; Col<Size; Col++)
+      {
+        QColor B(Qt::color0);
+        QColor M(Qt::color0);
+        if ((Col>0 && (Row >= S2-1 && Row <= S2+1))
+            || (Row>0 && (Col >= S2-1 && Col <= S2+1)))
+          M = Qt::color1;
+        if ((Col>0&&Row == S2) || (Row>0&&Col == S2))
+          B = Qt::color1;
+        CursorPainter.setPen(B);
+        CursorPainter.drawPoint(QPoint(Col,Row));
+        MaskPainter.setPen(M);
+        MaskPainter.drawPoint(QPoint(Col,Row));
+      }
+
     // Change the cursor. Should be configurable
-    setCursor(Qt::CrossCursor);
+    setCursor(QCursor(Cursor,Mask,S2,S2));
 
     // Enter secondary loop and wait for reply
     QEventLoop event_loop;
@@ -226,3 +270,20 @@ int QvivWidget::pick_point(// output
 
     return 0;
 }
+
+void QvivWidget::set_view_overlay(bool do_view_overlay)
+{
+  d->do_show_marks = do_view_overlay;
+  redraw();
+}
+
+void QvivWidget::set_view_balloon(bool do_view_balloon)
+{
+  d->do_show_balloon = do_view_balloon;
+  if (d->do_show_balloon)
+    redraw();
+  else
+    d->w_balloon->hide();
+}
+
+

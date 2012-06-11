@@ -120,7 +120,8 @@ void QvivImageViewer::set_image(QImage& image)
   d->image = image;
   d->scroll_width = image.width();
   d->scroll_height = image.height();
-  redraw();
+  if (!d->frozen)
+    redraw();
 }
 
 QSize QvivImageViewer::sizeHint() const
@@ -1189,6 +1190,11 @@ void QvivImageViewer::redraw(void)
                     d->current_scale_y,
                     d->current_x0,
                     d->current_y0);
+}
+
+void QvivImageViewer::set_frozen(bool frozen)
+{
+  d->frozen = frozen;
 }
 
 // Scale and replicate an image. 

@@ -76,6 +76,7 @@ public:
                              int& shift_y);
     // Force a redraw
     void redraw();
+    void set_frozen(bool frozen);
 
 protected:
     void paintEvent(QPaintEvent * event);

@@ -87,7 +87,7 @@ char *QvivBalloons::get_balloon_text(int balloon_index)
   if (resolver)
     return resolver->getString(balloon_index);
   
-  if (balloon_index < 0 || balloon_index > (int)balloon_strings.size())
+  if (balloon_index < 0 || balloon_index >= (int)balloon_strings.size())
     return NULL;
   
   return strdup(balloon_strings[balloon_index]);

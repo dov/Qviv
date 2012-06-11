@@ -73,6 +73,9 @@ class QvivBalloons
     ~QvivBalloons();
     int add_balloon(const char *balloon_string);
     void clear(void);
+    size_t get_num_ballons(void) {
+      return balloon_strings.size();
+    }
     char *get_balloon_text(int balloon_index);
     void setResolver(BalloonIndexToStringResolver *_resolver=NULL)
     {
@@ -112,6 +115,7 @@ class QvivDataSet
     {
       SetDefaultVals();
       color = _color;
+      this->line_width = line_width;
     }
     QvivDataSet(QVariantMap Variant);
 

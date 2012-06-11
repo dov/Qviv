@@ -30,12 +30,14 @@ public:
 
 QvivHistogram::QvivHistogram(QWidget *parent,
                              QImage *image)
+  : QWidget(parent)
 {
     d = new Priv;
     d->parent = this;
     d->histogram.resize(256);
     d->margin = 20;
     d->cursorGrayLevel = 128;
+    d->scale= 1.0;
     setImage(image);
 
     setWindowTitle("Histogram");
@@ -44,24 +46,26 @@ QvivHistogram::QvivHistogram(QWidget *parent,
     setMouseTracking(true);
 }
 
-void QvivHistogram::setImage(QImage *image)
+void QvivHistogram::setImage(QImage *image, bool do_reset_scale)
 {
     // Create histogram
     d->image = image;
     d->histogram.clear();
     d->histogram.resize(256,0);
     d->histoMax = 0;
-    d->scale = 1.0;
+
+    if (do_reset_scale)
+      d->scale = 1.0;
     if (!image)
         return;
 
     int width = image->width();
     int height = image->height();
-    int bpp = image->depth();
+    int bpp = image->depth()/8;
 
     // Assume 8-bit gray and only create histogram of first pixel
     for (int row_idx=0; row_idx < height; row_idx++) {
-        const uchar *p = image->constScanLine ( row_idx );
+        const uchar *p = image->scanLine ( row_idx );
         for (int col_idx=0; col_idx < width; col_idx++) {
             int gl = *p;
             d->histogram[gl]++;
@@ -73,7 +77,6 @@ void QvivHistogram::setImage(QImage *image)
     for (int i=0; i<256; i++)
         if (d->histogram[i] > d->histoMax)
             d->histoMax = d->histogram[i];
-    printf("histoMax= %d\n", d->histoMax);
     update();
 }
 
@@ -161,7 +164,6 @@ double QvivHistogram::Priv::canvasXtoGL(double canvasX)
 void QvivHistogram::mouseMoveEvent (QMouseEvent *event)
 {
     int x = event->x();
-    int y = event->y();
 
     double GL = d->canvasXtoGL(x);
     if (GL < 0)
@@ -176,7 +178,7 @@ void QvivHistogram::mouseMoveEvent (QMouseEvent *event)
 void QvivHistogram::wheelEvent (QWheelEvent *event)
 {
     int delta=event->delta();
-    int num_steps = abs(delta/120);
+
     if (delta < 0)
         d->scale /= 1.1;
     else

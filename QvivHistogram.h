@@ -16,7 +16,7 @@ public:
     QvivHistogram(QWidget *parent,
                   QImage *image = NULL);
     ~QvivHistogram(void);
-    void setImage(QImage *image);
+    void setImage(QImage *image, bool do_reset_scale = false);
     void setCursorGrayLevel(int GrayLevel);
 
 protected:

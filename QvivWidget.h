@@ -8,6 +8,8 @@
 class QvivData;
 
 class QvivWidget : public QvivImageViewer {
+    Q_OBJECT 
+
 public:
     QvivWidget(QWidget *parent,
                QImage image );
@@ -19,6 +21,9 @@ public:
     // -1 if Escape was pressed to indicate aborting the picking.
     int pick_point(// output
                    QPointF& picked_point);
+    void set_view_overlay(bool do_view_overlay);
+    void set_view_balloon(bool do_view_overlay);
+    void abort_pick_point(void);
       
 protected:
     void keyPressEvent (QKeyEvent * event);
@@ -26,6 +31,10 @@ protected:
     void imageAnnotate(QImage*, int, int, double, double);
     void mouseMoveEvent (QMouseEvent *event);
     void leaveEvent(QEvent *event);
+
+signals:
+    void qvivOverlayChanged(bool view_overlay);
+    void qvivBalloonChanged(bool view_overlay);
 
 private:
     class Priv;
