@@ -134,3 +134,17 @@ Text alignment is easily done through QPainter.
   - [X] Text alignment with the sum of the following values.
     - Horizontal: 0=left, 1=hcenter, 2=right
     - Vertical: 0=top, 1=vcenter,2=bottom
+* <2012-06-11 Mon>
+** Rubber banding for measurements
+Today I implemented rubber banding for measurements. The way I did it was by creating a secondary QvivDataSet in the QvivWidget that contains the drawing commands for the rubber band. In the mouseMoveEvent callback, this data set is updated with the drawing commands of the rubber band. Currently the drawing command is a fixed line, but it is easy to add a function for doing delegatino of the preparation of the drawing dataset. Once the new dataset has been prepared a redraw() command takes care of refreshing the entire widget.
+
+Currently this method always redraws the entire widget for every motion event. This is in contrast to my gtk lasso that only exposes a set of small rectangles covering the old and the new positions of the rubber band. But the gtk data set can be extended to calculate such rectangles.
+
+Another possible optimization is to creating a backing store image when entering the rubber band and use that backing store when painting the image contents.
+
+I also tried using QRubberBand, which I just discovered exists. I thought that perhaps it was smarter, but it turns out juts as bad. Here is a link to an email discussing a similar efficiency problem with the rubberband:
+
+* http://lists.qt.nokia.com/pipermail/qt-interest/2010-March/020971.html
+
+Another interesting question that I have no good answer of yet is what is the difference http://qt-project.org/doc/qt-4.8/qgraphicsview.html#details and Qviv. Should make a list.
+
