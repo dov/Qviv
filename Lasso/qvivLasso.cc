@@ -53,9 +53,9 @@ QvivLasso::~QvivLasso()
 
 QColor QvivLasso::getColorForLabel(int label)
 {
-  int rr = label & 0xff;
+  int bb = label & 0xff;
   int gg = (label>>8) & 0xff;
-  int bb = (label>>16) & 0xff;
+  int rr = (label>>16) & 0xff;
 
   return QColor(rr,gg,bb);
 }
@@ -88,7 +88,7 @@ void QvivLasso::draw(QPainter *painter)
   int height = d->widget->height();
 
   if (d->lassoDrawing)
-    d->lassoDrawing->draw(painter, DOVTK_LASSO_CONTEXT_PAINT);
+    d->lassoDrawing->draw(painter, QVIV_LASSO_CONTEXT_PAINT);
   else
   {
     // Some default drawing
@@ -107,9 +107,9 @@ int QvivLasso::getLabelForPixel(int colIdx, int rowIdx)
   QPainter painter(&labelImage);
   painter.fillRect(0,0,labelImage.width(),labelImage.height(),
                    QColor(0,0,0,0));
-  d->lassoDrawing->draw(&painter, DOVTK_LASSO_CONTEXT_LABEL);
+  d->lassoDrawing->draw(&painter, QVIV_LASSO_CONTEXT_LABEL);
   QRgb pixel = labelImage.pixel(colIdx, rowIdx);
   if (pixel &0xff000000 == 0)
     return -1;
-  return int(pixel);
+  return int(pixel&0xffffff);
 }
