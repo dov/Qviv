@@ -12,11 +12,164 @@
 #include <QLabel>
 #include <QEventLoop>
 #include <stdio.h>
+#include <math.h>
 #include "QvivWidget.h"
 #include "QvivData.h"
 #include "QvivRenderer.h"
 #include "QvivPainterAgg.h"
-#include "QRubberBand"
+#include "QvivLasso.h"
+
+static const double RAD2DEG = 180 / 3.1415926535;
+
+// Draw a caliper. This should be made configurable.
+static void drawCaliper(QPainter *painter,
+                        QvivLassoContext context,
+                        double x0, double y0,
+                        double x1, double y1)
+{
+    int margin = 0;
+    painter->resetTransform();
+    printf("drawCaliper = %f,%f->%f,%f\n", x0,y0,x1,y1);
+    if (context == QVIV_LASSO_CONTEXT_PAINT)
+        painter->setRenderHint(QPainter::Antialiasing, true);
+    else
+    {
+        margin = 5;
+        painter->setRenderHint(QPainter::Antialiasing, false);
+    }
+  
+    double angle = atan2(y1-y0,x1-x0);
+    painter->translate(0.5 * (x0+x1),
+                       0.5 * (y0+y1));
+    painter->rotate(angle * RAD2DEG);
+    double dist = sqrt((x1-x0)*(x1-x0) + (y1-y0)*(y1-y0));
+
+    // Middle stroke
+    QColor color;
+    QPen pen;
+    if (context == QVIV_LASSO_CONTEXT_PAINT)
+        color = QColor(255,0xaa,0,128);
+    else if (context == QVIV_LASSO_CONTEXT_LABEL)
+    {
+        color = QvivLasso::getColorForLabel(1);
+        pen.setWidth(5);
+    }
+    else
+    {
+        color = Qt::black;
+        pen.setWidth(5);
+    }
+
+    painter->fillRect(-dist/2-margin, -20-margin,
+                      dist+2*margin, 20+2*margin, color);
+
+    // Side left
+    if (context == QVIV_LASSO_CONTEXT_PAINT)
+        color = QColor(0x50,0x2d,0x16);
+    else if (context == QVIV_LASSO_CONTEXT_LABEL)
+        color = QvivLasso::getColorForLabel(2);
+
+    painter->setBrush(QBrush(color));
+    painter->setPen(pen);
+
+    double calip_height = 50;
+    QPainterPath path;
+    double x = -dist/2+margin;
+    double y = calip_height/2+margin;
+    path.moveTo(x,y);
+    double dy = -(calip_height+3*margin)/3;
+    path.cubicTo(x-15-2*margin,y+dy,
+                 x-15-2*margin,y+2.5*dy,
+                 x-15-2*margin,y+3*dy);
+    x = -dist/2+margin;
+    y = -calip_height/2-margin;
+    path.lineTo(x,y);
+    path.closeSubpath();
+    if (context != QVIV_LASSO_CONTEXT_PAINT)
+        painter->strokePath(path, pen);
+    painter->drawPath(path);
+
+    if (context == QVIV_LASSO_CONTEXT_LABEL)
+    {
+        color = QvivLasso::getColorForLabel(3);
+        pen.setColor(color); 
+    }  
+  
+    path = QPainterPath();  // Empty the path
+    painter->setBrush(QBrush(color));
+    painter->setPen(pen);
+
+    x = dist/2-margin;
+    y = calip_height/2+margin;
+    path.moveTo(x,y); 
+    path.cubicTo(x + 15+2*margin,y + dy,
+                 x + 15+2*margin,y + 2.5*dy,
+                 x + 15+2*margin,y + 3*dy);
+    path.lineTo(dist/2-margin,-calip_height/2-margin); 
+    path.closeSubpath();
+
+    if (context != QVIV_LASSO_CONTEXT_PAINT)
+        painter->strokePath(path, pen);
+    painter->drawPath(path);
+
+    if (context == QVIV_LASSO_CONTEXT_PAINT)
+    {
+        // Draw label within the caliper
+        QFont Font("Sans",14);
+        painter->setFont(Font);
+        painter->setPen(QColor(0,0,0,255));
+        QString distString = QString("%1").arg(dist,0,'f',1);
+        QFontMetrics fm(Font);
+        QRect rect = fm.tightBoundingRect(distString);
+        rect.moveTop(-14);
+        rect.moveLeft(-rect.width()/2);
+        painter->drawText(rect, Qt::AlignCenter, distString);
+    }
+}
+
+class MyLassoDrawing : public QvivLassoDrawing {
+public:
+    MyLassoDrawing(void)
+    {
+        this->x0=this->y0=0;
+        this->x1=this->y1=0;
+        this->moving = false;
+    }
+    void draw(QPainter *painter,
+              QvivLassoContext Context)
+    {
+        printf("caliper %.2f,%.2f->%.2f,%.2f\n", x0,y0,x1,y1);
+        drawCaliper(painter,Context,x0,y0,x1,y1);
+    }        
+    void setXY0(double x, double y)
+    {
+        this->x0 = x;
+        this->y0 = y;
+    }
+    void setXY1(double x, double y)
+    {
+        this->x1 = x;
+        this->y1 = y;
+    }
+    void incXY0(double dx, double dy)
+    {
+        this->x0 += dx;
+        this->y0 += dy;
+    }
+    void incXY1(double dx, double dy)
+    {
+        this->x1 += dx;
+        this->y1 += dy;
+    }
+    void setMoving(bool moving)
+    {
+        this->moving = moving;
+    }
+
+    double x0, y0;
+    double x1, y1;
+    bool moving;
+};
 
 class QvivWidget::Priv
 {
@@ -29,11 +182,16 @@ public:
     bool do_show_balloon;
     bool do_show_marks;
     bool do_pick_point;
-    bool do_draw_rubber_band;
+    bool do_measure;
+    int picking; // Used in measuring
     QPointF rubber_band_start;
     QEventLoop *event_loop;
     QPointF picked_point;
-    QRubberBand *rubber_band;
+    QvivLasso *lasso;
+    MyLassoDrawing *lassoDrawing;
+    double mx0,my0,mx1,my1; // Measuring in image coordinates
+    int last_x, last_y;     // Last measuring coord in canvas coordinates
+    double last_shift_x, last_shift_y, last_scale_x, last_scale_y;
 };
 
 QvivWidget::QvivWidget(QWidget *parent,
@@ -53,8 +211,10 @@ QvivWidget::QvivWidget(QWidget *parent,
     d->qviv_data = NULL;
     d->qviv_measure_data = NULL;
     d->do_pick_point = false;
-    d->do_draw_rubber_band = false;
-    d->rubber_band = NULL;
+    d->do_measure = false;
+    d->lasso = new QvivLasso(viewport());
+    d->lassoDrawing = new MyLassoDrawing();
+    d->lasso->setLassoDrawing(d->lassoDrawing);
 }
 
 QvivWidget::~QvivWidget()
@@ -73,6 +233,30 @@ void QvivWidget::imageAnnotate(QImage *image,
 {
     if (get_mouse_scrolling())
         return;
+
+    // The following is ugly and should be replaced with a proper
+    // signal whenever the scaling is changed!
+    if (d->do_measure
+        && (shift_x != d->last_shift_x
+            || shift_y != d->last_shift_y
+            || scale_x != d->last_scale_x
+            || scale_y != d->last_scale_y))
+    {
+        double x0, y0, x1, y1;
+        img_coord_to_canv_coord(d->mx0,d->my0,
+                                // output
+                                x0,y0);
+        img_coord_to_canv_coord(d->mx1,d->my1,
+                                // output
+                                x1,y1);
+        d->lassoDrawing->setXY0(x0,y0);
+        d->lassoDrawing->setXY1(x1,y1);
+        printf("Rescaling caliper\n");
+    }
+    d->last_shift_x = shift_x;
+    d->last_shift_y = shift_y;
+    d->last_scale_x = scale_x;
+    d->last_scale_y = scale_y;
 
     QvivPainterAgg qviv_painter(image,true);
     if (d->do_show_marks)
@@ -100,7 +284,8 @@ void QvivWidget::imageAnnotate(QImage *image,
     // balloon image is always the size of the total displayed area.
     // It would be faster to store and scroll the label image. But
     // we currently don't have any way of doing that. 
-    if (d->do_show_balloon) {
+    if (d->do_show_balloon)
+    {
         int li_shift_x, li_shift_y;
         double li_scale_x, li_scale_y;
 
@@ -124,6 +309,12 @@ void QvivWidget::imageAnnotate(QImage *image,
     }
 }
 
+void QvivWidget::resizeEvent(QResizeEvent *event)
+{
+  d->lasso->resize(event->size());
+  event->accept();
+}
+
 void QvivWidget::mousePressEvent (QMouseEvent * event)
 {
     // Allow control zooming by not catching the event when control is pressed
@@ -141,6 +332,36 @@ void QvivWidget::mousePressEvent (QMouseEvent * event)
         d->event_loop->exit(0);
         return;
     }
+    if (d->do_measure
+        && (event->modifiers() & Qt::ControlModifier)==0
+        && event->button() == 1)
+    {
+        int x=event->x();
+        int y=event->y();
+        d->last_x = x;
+        d->last_y = y;
+        double imgx,imgy;
+        canv_coord_to_img_coord(x,y,
+                                // output
+                                imgx,imgy);
+        
+        int label = d->lasso->getLabelForPixel(x,y);
+        
+        d->picking = label;
+        
+        if (d->picking == 0)
+        {
+            d->lassoDrawing->setXY0(x,y);
+            d->lassoDrawing->setXY1(x,y);
+            d->picking = 3;
+        }
+        d->lassoDrawing->setMoving(true);
+        d->mx0 = d->mx1 = imgx;
+        d->my0 = d->my1 = imgy;
+        d->lasso->update();
+        return;
+    }
+        
     QvivImageViewer::mousePressEvent(event);
 }
 
@@ -151,6 +372,11 @@ void QvivWidget::abort_pick_point()
     d->do_pick_point = false;
     d->event_loop->exit(-1);
   }
+}
+
+void QvivWidget::mouseReleaseEvent (QMouseEvent * event)
+{
+  d->lassoDrawing->setMoving(false);
 }
 
 void QvivWidget::mouseMoveEvent (QMouseEvent *event)
@@ -190,35 +416,31 @@ void QvivWidget::mouseMoveEvent (QMouseEvent *event)
         d->w_balloon->hide();
     }
 
-    if (d->do_draw_rubber_band)
+    if (d->do_measure && d->lassoDrawing->moving)
     {
-        double imgx, imgy;
-
-        // Create a rubber band from first to rast point
-        canv_coord_to_img_coord(event->x(), event->y(),
+        double x = event->x();
+        double y = event->y();
+        double dx = x - d->last_x;
+        double dy = y - d->last_y;
+        d->last_x = x;
+        d->last_y = y;
+        
+        if (d->picking == 1 || d->picking == 2)
+            d->lassoDrawing->incXY0(dx,dy);
+        if (d->picking == 1 || d->picking == 3)
+            d->lassoDrawing->incXY1(dx,dy);
+        
+        // Save as image coordinates
+        canv_coord_to_img_coord(d->lassoDrawing->x0,
+                                d->lassoDrawing->y0,
                                 // output
-                                imgx,imgy);
-
-#if 1
-        d->qviv_measure_data->clear();
-        QvivDataSet ds;
-        ds.add_point(OP_MOVE,
-                     d->rubber_band_start.x(),
-                     d->rubber_band_start.y());
-        ds.add_point(OP_DRAW, imgx, imgy);
-        d->qviv_measure_data->data_sets.push_back(ds);
-
-        // This should be made more efficient!
-        redraw();
-#else
-        double x0,y0;
-        img_coord_to_canv_coord(d->rubber_band_start.x(),
-                                d->rubber_band_start.y(),
+                                d->mx0,d->my0);
+        canv_coord_to_img_coord(d->lassoDrawing->x1,
+                                d->lassoDrawing->y1,
                                 // output
-                                x0,y0);
-        d->rubber_band->setGeometry(x0,y0,
-                                    event->x()-x0, event->y()-y0);
-#endif
+                                d->mx1,d->my1);
+        
+        d->lasso->update();
     }
 }
 
@@ -258,6 +480,11 @@ void QvivWidget::keyPressEvent (QKeyEvent * event)
         emit qvivOverlayChanged(d->do_show_marks);
 
         redraw();
+    }
+    else if (k=="z")
+    {
+        d->do_measure = !d->do_measure;
+        printf("Do measure=%d\n", d->do_measure);
     }
 
     QvivImageViewer::keyPressEvent(event);
@@ -320,34 +547,6 @@ int QvivWidget::pick_point(// output
 
     return 0;
 }
-
-// Given a point start_point, draw a rubber band to another point.
-int QvivWidget::rubber_band_pick(QPointF start_point,
-                                 // output
-                                 QPointF& picked_point)
-{
-    d->rubber_band_start = start_point;
-    d->do_draw_rubber_band = true;
-    d->qviv_measure_data = new QvivData;
-    d->rubber_band = new QRubberBand(QRubberBand::Rectangle, this);
-    d->rubber_band->setGeometry(start_point.x(), start_point.y(),
-                                0,0);
-    d->rubber_band->show();
-        
-
-    // Meanwhile ignore the start point
-    int ret =  pick_point(picked_point);
-    d->do_draw_rubber_band = false;
-    delete d->qviv_measure_data;
-    d->qviv_measure_data = NULL;
-    delete d->rubber_band;
-    d->rubber_band = NULL;
-
-    redraw();
-
-    return ret;
-}
-
 
 void QvivWidget::set_view_overlay(bool do_view_overlay)
 {

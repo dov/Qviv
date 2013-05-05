@@ -12,7 +12,16 @@ debug:UI_DIR = debug/.ui
 
 QMAKE_CXXFLAGS+= -Wno-unused-parameter
 
-HEADERS = QvivImageViewer.h QvivWidget.h QvivData.h QvivRenderer.h QvivPainter.h QvivPainterAgg.h QvivX11Colors.h QvivHistogram.h
+HEADERS = QvivImageViewer.h \
+          QvivWidget.h \
+          QvivData.h \
+          QvivRenderer.h \
+          QvivPainter.h \
+          QvivPainterAgg.h \
+          QvivX11Colors.h \
+          QvivHistogram.h \
+          QvivOverlay.h \
+          QvivLasso.h 
 SOURCES =  \
     QvivRenderer.cc \
     QvivImageViewer.cc \
@@ -21,6 +30,8 @@ SOURCES =  \
     QvivPainterAgg.cc \
     QvivX11Colors.cc \
     QvivHistogram.cc \
+    QvivOverlay.cc \
+    QvivLasso.cc \
     giv_agg_arrowhead.cc \
     agg/agg_arc.cpp \
     agg/agg_arrowhead.cpp \

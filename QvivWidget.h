@@ -31,9 +31,11 @@ public:
 protected:
     void keyPressEvent (QKeyEvent * event);
     void mousePressEvent (QMouseEvent * event);
+    void mouseReleaseEvent (QMouseEvent * event);
     void imageAnnotate(QImage*, int, int, double, double);
     void mouseMoveEvent (QMouseEvent *event);
     void leaveEvent(QEvent *event);
+    void resizeEvent(QResizeEvent *event);
 
 signals:
     void qvivOverlayChanged(bool view_overlay);

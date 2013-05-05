@@ -8,6 +8,7 @@
 #include <QPainter>
 #include <QPen>
 #include "QvivOverlay.h"
+#include <stdio.h>
 
 class QvivOverlay::Priv {
 public:
@@ -34,6 +35,7 @@ void QvivOverlay::paintEvent(QPaintEvent *event)
   QPainter painter(this);
   if (d->overlayPainter)
     d->overlayPainter->draw(&painter);
+  printf("QvivOverlay::paintEvent\n");
 }
 
 void QvivOverlay::setPainter(QvivOverlayPainter *overlayPainter)

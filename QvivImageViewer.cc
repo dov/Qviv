@@ -547,6 +547,8 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
     if (!d->frozen)
         painter.drawImage(QRect(dst_x,dst_y,copy_w,copy_h),
                           img_scaled);
+  printf("QvivImageViewer::paintEvent\n");
+
 }
 
 void QvivImageViewer::mousePressEvent (QMouseEvent *event)

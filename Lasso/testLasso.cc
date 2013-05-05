@@ -13,7 +13,6 @@
 #include <QGraphicsRectItem>
 #include <QPaintEvent>
 #include <QResizeEvent>
-#include "QvivOverlay.h"
 #include "QvivLasso.h"
 
 

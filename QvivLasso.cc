@@ -1,6 +1,7 @@
 #include <QWidget>
 #include "QvivLasso.h"
 #include "QvivOverlay.h"
+#include <stdio.h>
 
 
 class MyOverlayPainter : public QvivOverlayPainter
@@ -22,6 +23,7 @@ MyOverlayPainter::MyOverlayPainter(QvivLasso *_lasso)
 
 void MyOverlayPainter::draw(QPainter *painter)
 {
+    printf("overlaypainter: draw...\n");
     lasso->draw(painter);
 }
 
@@ -69,11 +71,13 @@ void QvivLasso::update(void)
 {
   // TBD - generate a list of drawing rectangles. For now update
   // the entire widget that is being handled.
+  printf("lasso update...\n");
   d->widget->update();
 
 }
 void QvivLasso::resize(const QSize& size)
 {
+  printf("lasso (and overlay) resize to %d,%d\n", size.width(), size.height());
   d->overlay->resize(size);
 }
 
@@ -84,19 +88,8 @@ QWidget *QvivLasso::widget(void)
 
 void QvivLasso::draw(QPainter *painter)
 {
-  int width = d->widget->width();
-  int height = d->widget->height();
-
   if (d->lassoDrawing)
     d->lassoDrawing->draw(painter, QVIV_LASSO_CONTEXT_PAINT);
-  else
-  {
-    // Some default drawing
-    painter->setRenderHint(QPainter::Antialiasing);
-    painter->setPen(QPen(Qt::green));
-    painter->drawLine(width/8, height/8, 7*width/8, 7*height/8);
-    painter->drawLine(width/8, 7*height/8, 7*width/8, height/8);
-  }
 }
 
 // This is slow as the label image is recalculated every time.
@@ -108,8 +101,5 @@ int QvivLasso::getLabelForPixel(int colIdx, int rowIdx)
   painter.fillRect(0,0,labelImage.width(),labelImage.height(),
                    QColor(0,0,0,0));
   d->lassoDrawing->draw(&painter, QVIV_LASSO_CONTEXT_LABEL);
-  QRgb pixel = labelImage.pixel(colIdx, rowIdx);
-  if (pixel &0xff000000 == 0)
-    return -1;
-  return int(pixel&0xffffff);
+  return labelImage.pixel(colIdx, rowIdx) & 0xffffff;
 }
