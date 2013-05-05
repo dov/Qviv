@@ -13,8 +13,8 @@
 #include <QGraphicsRectItem>
 #include <QPaintEvent>
 #include <QResizeEvent>
-#include "overlay.h"
-#include "qvivLasso.h"
+#include "QvivOverlay.h"
+#include "QvivLasso.h"
 
 
 static const double RAD2DEG = 180 / 3.1415926535;

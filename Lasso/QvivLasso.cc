@@ -1,9 +1,9 @@
 #include <QWidget>
-#include "qvivLasso.h"
-#include "overlay.h"
+#include "QvivLasso.h"
+#include "QvivOverlay.h"
 
 
-class MyOverlayPainter : public OverlayPainter
+class MyOverlayPainter : public QvivOverlayPainter
 {
   public:
     MyOverlayPainter(QvivLasso *lasso);
@@ -31,7 +31,7 @@ class QvivLasso::Priv
     QvivLassoDrawing* lassoDrawing;
     MyOverlayPainter* overlayPainter;
     QWidget *widget;
-    Overlay *overlay;
+    QvivOverlay *overlay;
 };
 
 
@@ -40,7 +40,7 @@ QvivLasso::QvivLasso(QWidget *widget)
 {
   d = new Priv;
   d->widget = widget;
-  d->overlay = new Overlay(widget);
+  d->overlay = new QvivOverlay(widget);
   d->overlayPainter = new MyOverlayPainter(this);
   d->overlay->setPainter(d->overlayPainter);
 }

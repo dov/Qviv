@@ -3,11 +3,11 @@ env = Environment(tools=['default','qt4'])
 env.EnableQt4Modules(['QtGui'])
 env.Program('testOverlay',
             ['testOverlay.cc',
-             'overlay.cc'])
+             'QvivOverlay.cc'])
 
 
 env.Program('testLasso',
             ['testLasso.cc',
-             'qvivLasso.cc',
-             'overlay.cc',
+             'QvivLasso.cc',
+             'QvivOverlay.cc',
              ])

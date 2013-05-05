@@ -12,7 +12,7 @@
 #include <QGraphicsRectItem>
 #include <QPaintEvent>
 #include <QResizeEvent>
-#include "overlay.h"
+#include "QvivOverlay.h"
 
 class MyApp : public QApplication {
 public:
@@ -47,7 +47,7 @@ private:
 class MyDrawingWidget::Priv
 {
   public:
-    Overlay *overlay;
+    QvivOverlay *overlay;
 };
 
 MyDrawingWidget::MyDrawingWidget(QWidget *parent)
@@ -56,7 +56,7 @@ MyDrawingWidget::MyDrawingWidget(QWidget *parent)
     setBackgroundRole(QPalette::Base);
     setAutoFillBackground(true);
     d = new Priv;
-    d->overlay = new Overlay(this);
+    d->overlay = new QvivOverlay(this);
 }
 
 MyDrawingWidget::~MyDrawingWidget()

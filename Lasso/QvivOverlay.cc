@@ -7,14 +7,14 @@
 
 #include <QPainter>
 #include <QPen>
-#include "overlay.h"
+#include "QvivOverlay.h"
 
-class Overlay::Priv {
+class QvivOverlay::Priv {
 public:
-  OverlayPainter *overlayPainter;
+  QvivOverlayPainter *overlayPainter;
 };
 
-Overlay::Overlay(QWidget *parent)
+QvivOverlay::QvivOverlay(QWidget *parent)
   : QWidget(parent)
 {
   setPalette(Qt::transparent);
@@ -24,27 +24,19 @@ Overlay::Overlay(QWidget *parent)
 }
 
 // Destructor
-Overlay::~Overlay(void)
+QvivOverlay::~QvivOverlay(void)
 {
   delete d;
 }
 
-void Overlay::paintEvent(QPaintEvent *event)
+void QvivOverlay::paintEvent(QPaintEvent *event)
 {
   QPainter painter(this);
   if (d->overlayPainter)
     d->overlayPainter->draw(&painter);
-  else
-  {
-    // Some default drawing
-    painter.setRenderHint(QPainter::Antialiasing);
-    painter.setPen(QPen(Qt::red));
-    painter.drawLine(width()/8, height()/8, 7*width()/8, 7*height()/8);
-    painter.drawLine(width()/8, 7*height()/8, 7*width()/8, height()/8);
-  }
 }
 
-void Overlay::setPainter(OverlayPainter *overlayPainter)
+void QvivOverlay::setPainter(QvivOverlayPainter *overlayPainter)
 {
   d->overlayPainter = overlayPainter;
 }

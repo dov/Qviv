@@ -4,23 +4,23 @@
 //  Dov Grobgeld <dov.grobgeld@gmail.com>
 //  Sat May  4 22:03:41 2013
 //----------------------------------------------------------------------
-#ifndef OVERLAY_H
-#define OVERLAY_H
+#ifndef QVIV_OVERLAY_H
+#define QVIV_OVERLAY_H
 
 #include <QWidget>
 
-class OverlayPainter {
+class QvivOverlayPainter {
   public:
-    virtual ~OverlayPainter() {}
+    virtual ~QvivOverlayPainter() {}
     virtual void draw(QPainter *painter) = 0;
 };
 
-class Overlay : public QWidget
+class QvivOverlay : public QWidget
 {
 public:
-  Overlay(QWidget *parent);
-  ~Overlay();
-  void setPainter(OverlayPainter *overlayPainter);
+  QvivOverlay(QWidget *parent);
+  ~QvivOverlay();
+  void setPainter(QvivOverlayPainter *overlayPainter);
 
 protected:
   void paintEvent(QPaintEvent *event);
