@@ -29,6 +29,7 @@ static void drawCaliper(QPainter *painter,
 {
     int margin = 0;
     painter->resetTransform();
+
     printf("drawCaliper = %f,%f->%f,%f\n", x0,y0,x1,y1);
     if (context == QVIV_LASSO_CONTEXT_PAINT)
         painter->setRenderHint(QPainter::Antialiasing, true);
@@ -37,8 +38,10 @@ static void drawCaliper(QPainter *painter,
         margin = 5;
         painter->setRenderHint(QPainter::Antialiasing, false);
     }
-  
+
     double angle = atan2(y1-y0,x1-x0);
+    QTransform t = painter->deviceTransform();
+    painter->translate(-t.dx(), -t.dy());
     painter->translate(0.5 * (x0+x1),
                        0.5 * (y0+y1));
     painter->rotate(angle * RAD2DEG);
@@ -129,17 +132,19 @@ static void drawCaliper(QPainter *painter,
 
 class MyLassoDrawing : public QvivLassoDrawing {
 public:
-    MyLassoDrawing(void)
+    MyLassoDrawing(QWidget *widget)
     {
         this->x0=this->y0=0;
         this->x1=this->y1=0;
         this->moving = false;
+        this->widget = widget;
     }
     void draw(QPainter *painter,
               QvivLassoContext Context)
     {
         printf("caliper %.2f,%.2f->%.2f,%.2f\n", x0,y0,x1,y1);
         drawCaliper(painter,Context,x0,y0,x1,y1);
+        ((QvivImageViewer*)widget)->redraw();
     }        
     void setXY0(double x, double y)
     {
@@ -169,6 +174,7 @@ public:
     double x0, y0;
     double x1, y1;
     bool moving;
+    QWidget *widget;
 };
 
 class QvivWidget::Priv
@@ -212,8 +218,8 @@ QvivWidget::QvivWidget(QWidget *parent,
     d->qviv_measure_data = NULL;
     d->do_pick_point = false;
     d->do_measure = false;
-    d->lasso = new QvivLasso(viewport());
-    d->lassoDrawing = new MyLassoDrawing();
+    d->lasso = new QvivLasso(this);
+    d->lassoDrawing = new MyLassoDrawing(this);
     d->lasso->setLassoDrawing(d->lassoDrawing);
 }
 
