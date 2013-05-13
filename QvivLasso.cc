@@ -23,7 +23,6 @@ MyOverlayPainter::MyOverlayPainter(QvivLasso *_lasso)
 
 void MyOverlayPainter::draw(QPainter *painter)
 {
-    printf("overlaypainter: draw...\n");
     lasso->draw(painter);
 }
 
@@ -38,11 +37,11 @@ class QvivLasso::Priv
 
 
 // Constructor
-QvivLasso::QvivLasso(QWidget *widget)
+QvivLasso::QvivLasso(QWidget *widget, QWidget *viewport)
 {
   d = new Priv;
   d->widget = widget;
-  d->overlay = new QvivOverlay(widget);
+  d->overlay = new QvivOverlay(widget, viewport);
   d->overlayPainter = new MyOverlayPainter(this);
   d->overlay->setPainter(d->overlayPainter);
 }
@@ -71,13 +70,11 @@ void QvivLasso::update(void)
 {
   // TBD - generate a list of drawing rectangles. For now update
   // the entire widget that is being handled.
-  printf("lasso update...\n");
   d->widget->update();
 
 }
 void QvivLasso::resize(const QSize& size)
 {
-  printf("lasso (and overlay) resize to %d,%d\n", size.width(), size.height());
   d->overlay->resize(size);
 }
 

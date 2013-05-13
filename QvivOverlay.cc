@@ -12,16 +12,19 @@
 
 class QvivOverlay::Priv {
 public:
-  QvivOverlayPainter *overlayPainter;
+    QvivOverlayPainter *overlayPainter;
+    QWidget *viewport; 
 };
 
-QvivOverlay::QvivOverlay(QWidget *parent)
+QvivOverlay::QvivOverlay(QWidget *parent,
+                         QWidget *viewport)
   : QWidget(parent)
 {
   setPalette(Qt::transparent);
   setAttribute(Qt::WA_TransparentForMouseEvents);
   d = new Priv;
   d->overlayPainter = NULL;
+  d->viewport = viewport;
 }
 
 // Destructor
@@ -35,7 +38,6 @@ void QvivOverlay::paintEvent(QPaintEvent *event)
   QPainter painter(this);
   if (d->overlayPainter)
     d->overlayPainter->draw(&painter);
-  printf("QvivOverlay::paintEvent\n");
 }
 
 void QvivOverlay::setPainter(QvivOverlayPainter *overlayPainter)

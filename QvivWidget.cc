@@ -25,12 +25,11 @@ static const double RAD2DEG = 180 / 3.1415926535;
 static void drawCaliper(QPainter *painter,
                         QvivLassoContext context,
                         double x0, double y0,
-                        double x1, double y1)
+                        double x1, double y1,
+                        const QString& distString)
 {
     int margin = 0;
     painter->resetTransform();
-
-    printf("drawCaliper = %f,%f->%f,%f\n", x0,y0,x1,y1);
     if (context == QVIV_LASSO_CONTEXT_PAINT)
         painter->setRenderHint(QPainter::Antialiasing, true);
     else
@@ -68,7 +67,7 @@ static void drawCaliper(QPainter *painter,
 
     // Side left
     if (context == QVIV_LASSO_CONTEXT_PAINT)
-        color = QColor(0x50,0x2d,0x16);
+        color = QColor(0x50,0x2d,0x16,128);
     else if (context == QVIV_LASSO_CONTEXT_LABEL)
         color = QvivLasso::getColorForLabel(2);
 
@@ -121,10 +120,9 @@ static void drawCaliper(QPainter *painter,
         QFont Font("Sans",14);
         painter->setFont(Font);
         painter->setPen(QColor(0,0,0,255));
-        QString distString = QString("%1").arg(dist,0,'f',1);
         QFontMetrics fm(Font);
         QRect rect = fm.tightBoundingRect(distString);
-        rect.moveTop(-14);
+        rect.moveTop(-10-rect.height()/2);
         rect.moveLeft(-rect.width()/2);
         painter->drawText(rect, Qt::AlignCenter, distString);
     }
@@ -132,19 +130,34 @@ static void drawCaliper(QPainter *painter,
 
 class MyLassoDrawing : public QvivLassoDrawing {
 public:
-    MyLassoDrawing(QWidget *widget)
+    MyLassoDrawing(QvivWidget *widget)
     {
-        this->x0=this->y0=0;
-        this->x1=this->y1=0;
+        this->x0=this->y0=-HUGE;
+        this->x1=this->y1=-HUGE;
         this->moving = false;
         this->widget = widget;
+        this->unit = "pix";
+        this->scale = 1.0;
     }
     void draw(QPainter *painter,
               QvivLassoContext Context)
     {
-        printf("caliper %.2f,%.2f->%.2f,%.2f\n", x0,y0,x1,y1);
-        drawCaliper(painter,Context,x0,y0,x1,y1);
-        ((QvivImageViewer*)widget)->redraw();
+        if (!widget->is_measuring())
+            return;
+
+        // Convert distance to image distance
+        double img_x0, img_y0, img_x1, img_y1;
+        widget->canv_coord_to_img_coord(x0,y0,
+                                        // output
+                                        img_x0, img_y0);
+        widget->canv_coord_to_img_coord(x1,y1,
+                                        // output
+                                        img_x1, img_y1);
+        double dist = sqrt((img_x1-img_x0)*(img_x1-img_x0)
+                           + (img_y1-img_y0)*(img_y1-img_y0));
+
+        QString DistString = QString("%1%2").arg(dist,0,'f',1).arg(unit);
+        drawCaliper(painter,Context,x0,y0,x1,y1, DistString);
     }        
     void setXY0(double x, double y)
     {
@@ -170,11 +183,18 @@ public:
     {
         this->moving = moving;
     }
+    void setUnitAndScale(const QString& unit, double scale)
+    {
+        this->unit = unit;
+        this->scale = scale;
+    }
 
     double x0, y0;
     double x1, y1;
     bool moving;
-    QWidget *widget;
+    QvivWidget *widget;
+    QString unit;
+    double scale;
 };
 
 class QvivWidget::Priv
@@ -237,9 +257,6 @@ void QvivWidget::imageAnnotate(QImage *image,
                                int shift_x, int shift_y,
                                double scale_x, double scale_y)
 {
-    if (get_mouse_scrolling())
-        return;
-
     // The following is ugly and should be replaced with a proper
     // signal whenever the scaling is changed!
     if (d->do_measure
@@ -257,8 +274,11 @@ void QvivWidget::imageAnnotate(QImage *image,
                                 x1,y1);
         d->lassoDrawing->setXY0(x0,y0);
         d->lassoDrawing->setXY1(x1,y1);
-        printf("Rescaling caliper\n");
     }
+
+    if (get_mouse_scrolling())
+        return;
+
     d->last_shift_x = shift_x;
     d->last_shift_y = shift_y;
     d->last_scale_x = scale_x;
@@ -365,6 +385,7 @@ void QvivWidget::mousePressEvent (QMouseEvent * event)
         d->mx0 = d->mx1 = imgx;
         d->my0 = d->my1 = imgy;
         d->lasso->update();
+        redraw();
         return;
     }
         
@@ -383,6 +404,7 @@ void QvivWidget::abort_pick_point()
 void QvivWidget::mouseReleaseEvent (QMouseEvent * event)
 {
   d->lassoDrawing->setMoving(false);
+  QvivImageViewer::mouseReleaseEvent(event);
 }
 
 void QvivWidget::mouseMoveEvent (QMouseEvent *event)
@@ -447,7 +469,10 @@ void QvivWidget::mouseMoveEvent (QMouseEvent *event)
                                 d->mx1,d->my1);
         
         d->lasso->update();
+        redraw();
+        return;
     }
+
 }
 
 void QvivWidget::leaveEvent(QEvent */*event*/)
@@ -490,7 +515,7 @@ void QvivWidget::keyPressEvent (QKeyEvent * event)
     else if (k=="z")
     {
         d->do_measure = !d->do_measure;
-        printf("Do measure=%d\n", d->do_measure);
+        redraw();
     }
 
     QvivImageViewer::keyPressEvent(event);
@@ -569,4 +594,9 @@ void QvivWidget::set_view_balloon(bool do_view_balloon)
     d->w_balloon->hide();
 }
 
+
+bool QvivWidget::is_measuring(void)
+{
+  return d->do_measure;
+}
 

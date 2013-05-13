@@ -13,47 +13,47 @@
 class QWidget;
 
 typedef enum {
-  QVIV_LASSO_CONTEXT_PAINT,
-  QVIV_LASSO_CONTEXT_MASK,
-  QVIV_LASSO_CONTEXT_LABEL
+    QVIV_LASSO_CONTEXT_PAINT,
+    QVIV_LASSO_CONTEXT_MASK,
+    QVIV_LASSO_CONTEXT_LABEL
 } QvivLassoContext;
 
 
 // The interface used for the drawing callback widget
 class QvivLassoDrawing {
 public:
-  virtual ~QvivLassoDrawing() {}
+    virtual ~QvivLassoDrawing() {}
 
-  virtual void draw(QPainter *painter,
-                    QvivLassoContext Context) = 0;
+    virtual void draw(QPainter *painter,
+                      QvivLassoContext Context) = 0;
 };
   
 // The lasso functionality
 class QvivLasso {
 public:
-  QvivLasso(QWidget *widget);
-  ~QvivLasso();
-  int getLabelForPixel(int colIdx, int rowIdx);
-  static QColor getColorForLabel(int label);
-  void setLassoDrawing(QvivLassoDrawing *lassoDrawing);
+    QvivLasso(QWidget *widget, QWidget *viewport=NULL);
+    ~QvivLasso();
+    int getLabelForPixel(int colIdx, int rowIdx);
+    static QColor getColorForLabel(int label);
+    void setLassoDrawing(QvivLassoDrawing *lassoDrawing);
 
-  // Call the current lasso drawing. Should typically not be used directly.
-  void draw(QPainter *painter);
+    // Call the current lasso drawing. Should typically not be used directly.
+    void draw(QPainter *painter);
 
-  // Expose and update the lasso.
-  void update(void);
+    // Expose and update the lasso.
+    void update(void);
 
-  // This *must* be called by in the owners resizeEvent as follows
-  //
-  //   lasso->resize(event->size());
-  void resize(const QSize& size);
+    // This *must* be called by in the owners resizeEvent as follows
+    //
+    //   lasso->resize(event->size());
+    void resize(const QSize& size);
 
-  // Accessor to the widget handled by the lasso.
-  QWidget *widget(void);
+    // Accessor to the widget handled by the lasso.
+    QWidget *widget(void);
 
 private:
-  class Priv;
-  Priv *d;
+    class Priv;
+    Priv *d;
 };
 
 #endif /* LASSO */

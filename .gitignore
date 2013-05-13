@@ -7,3 +7,11 @@ debug/.moc/*
 /debug/test-balloon
 /debug/test-qviv-widget
 lib
+.sconsign.dblite
+*.o
+*.pyc
+/Lasso/testLasso
+/Lasso/testOverlay
+*~
+/debug/test-pick
+/debug/test-qviv-image-viewer-with-histogram

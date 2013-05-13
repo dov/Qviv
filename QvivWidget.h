@@ -27,6 +27,7 @@ public:
     void set_view_overlay(bool do_view_overlay);
     void set_view_balloon(bool do_view_overlay);
     void abort_pick_point(void);
+    bool is_measuring(void);
       
 protected:
     void keyPressEvent (QKeyEvent * event);

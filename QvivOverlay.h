@@ -10,7 +10,7 @@
 #include <QWidget>
 
 class QvivOverlayPainter {
-  public:
+public:
     virtual ~QvivOverlayPainter() {}
     virtual void draw(QPainter *painter) = 0;
 };
@@ -18,16 +18,16 @@ class QvivOverlayPainter {
 class QvivOverlay : public QWidget
 {
 public:
-  QvivOverlay(QWidget *parent);
-  ~QvivOverlay();
-  void setPainter(QvivOverlayPainter *overlayPainter);
+    QvivOverlay(QWidget *parent, QWidget *viewport=NULL);
+    ~QvivOverlay();
+    void setPainter(QvivOverlayPainter *overlayPainter);
 
 protected:
-  void paintEvent(QPaintEvent *event);
+    void paintEvent(QPaintEvent *event);
 
 private:
-  class Priv;
-  Priv *d;
+    class Priv;
+    Priv *d;
 };
 
 #endif /* OVERLAY */
