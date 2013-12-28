@@ -25,6 +25,7 @@
 #include "agg/agg_conv_marker.h"
 #include "agg/agg_vcgen_markers_term.h"
 #include "giv_agg_arrowhead.h"
+#include "agg_conv_clipper.h"
 #include "math.h"
 
 using namespace std;
@@ -50,6 +51,7 @@ public:
     double red, green, blue, alpha;
     agg::rasterizer_scanline_aa<> pf;
     agg::path_storage path;
+    agg::path_storage bbox;
     agg::scanline_p8 sl;
     agg::vcgen_stroke stroke;
     agg::pixfmt_rgba32 pixf;
@@ -141,6 +143,13 @@ QvivPainterAgg::Priv::Priv(QImage *_image,
 #if 0
     layout = pango_cairo_create_layout (cr);
 #endif
+
+    // Create a bounding box that will be used for clipping
+    bbox.move_to(0, 0);
+    bbox.line_to(0, height);
+    bbox.line_to(width,height);
+    bbox.line_to(width,0);
+    bbox.close_polygon();
 }
 
 QvivPainterAgg::Priv::~Priv()
@@ -337,7 +346,14 @@ void QvivPainterAgg::fill()
         color = agg::rgba(d->blue,d->green,d->red,d->alpha);
     }
 
-    d->pf.add_path(d->curve);
+    typedef agg::conv_clipper<agg::path_storage, agg::path_storage> poly_clipper;
+    poly_clipper clipped(d->path,
+                         d->bbox,
+                         agg::clipper_and,
+                         agg::clipper_non_zero,
+                         agg::clipper_non_zero);
+    
+    d->pf.add_path(clipped);
     if (d->do_antialiased)
         agg::render_scanlines_aa_solid(d->pf, d->sl, d->rbase, color);
     else

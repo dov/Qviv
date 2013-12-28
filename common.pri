@@ -22,6 +22,7 @@ HEADERS = QvivImageViewer.h \
           QvivHistogram.h \
           QvivOverlay.h \
           QvivLasso.h 
+
 SOURCES =  \
     QvivRenderer.cc \
     QvivImageViewer.cc \
@@ -32,7 +33,9 @@ SOURCES =  \
     QvivHistogram.cc \
     QvivOverlay.cc \
     QvivLasso.cc \
+    clipper.cpp \
     giv_agg_arrowhead.cc \
+    agg_conv_clipper.h \
     agg/agg_arc.cpp \
     agg/agg_arrowhead.cpp \
     agg/agg_bezier_arc.cpp \
