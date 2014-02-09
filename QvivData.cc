@@ -13,7 +13,7 @@ QvivDataSet::QvivDataSet(QVariantMap variant)
   SetDefaultVals();
 
   if (variant.contains("color"))
-    color = QvivX11Colors::LookupColor(variant["color"].toString().toAscii());
+    color = QvivX11Colors::LookupColor(variant["color"].toString().toUtf8());
   if (variant.contains("line_width"))
     line_width = variant["line_width"].toFloat();
   if (variant.contains("is_visible"))
@@ -111,6 +111,6 @@ QvivData::QvivData(QVariant variant)
   {
     QVariantList BalloonList = map["balloons"].toList();
     for (QVariantList::iterator it=BalloonList.begin(); it!=BalloonList.end(); ++it)
-      balloons.add_balloon(it->toString().toAscii());
+      balloons.add_balloon(it->toString().toUtf8());
   }
 }

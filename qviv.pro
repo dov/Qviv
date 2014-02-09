@@ -1,10 +1,8 @@
 ! include( common.pri ) {
-    error( Couldn't find the common.pri file! )
+    error( "Couldn't find the common.pri file!" )
 }
 CONFIG += qt debug 
+QT += widgets
 
-TEMPLATE = subdirs
-SUBDIRS = qjson 
-
-SOURCES += qviv.cc QvivWidget.cc 
+SOURCES += qviv.cc 
 

@@ -210,7 +210,7 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
 #if 0
             gdk_draw_rectangle(widget->window,
                                widget->style->bg_gc[GTK_WIDGET_STATE (widget)],
-                               TRUE,
+                               true,
                                exp_x0,exp_y0,w, h);
 #endif
         }
@@ -231,11 +231,11 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
 #if 0            
             gdk_draw_rectangle(widget->window,
                                widget->style->bg_gc[GTK_WIDGET_STATE (widget)],
-                               TRUE,
+                               true,
                                exp_x0,exp_y0,(img_x0-exp_x0), h);
             gdk_draw_rectangle(widget->window,
                                widget->style->bg_gc[GTK_WIDGET_STATE (widget)],
-                               TRUE,
+                               true,
                                img_x1,exp_y0,(exp_x1-img_x1), h);
 #endif
         }
@@ -256,7 +256,7 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
 #if 0
             gdk_draw_rectangle(widget->window,
                                widget->style->bg_gc[GTK_WIDGET_STATE (widget)],
-                               TRUE,
+                               true,
                                exp_x0,exp_y0,(img_x0-exp_x0), h);
 #endif
         }
@@ -268,7 +268,7 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
             DBG(fprintf(stderr, "Case 4X\n"));
             gdk_draw_rectangle(widget->window,
                                widget->style->bg_gc[GTK_WIDGET_STATE (widget)],
-                               TRUE,
+                               true,
                                exp_x0,exp_y0,w, h);
             
 #endif
@@ -289,7 +289,7 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
 #if 0
             gdk_draw_rectangle(widget->window,
                                widget->style->bg_gc[GTK_WIDGET_STATE (widget)],
-                               TRUE,
+                               true,
                                img_x1,exp_y0,exp_x1-img_x1, h);
 #endif
         }
@@ -317,7 +317,7 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
 #if 0
             gdk_draw_rectangle(widget->window,
   			     widget->style->bg_gc[GTK_WIDGET_STATE (widget)],
-                               TRUE,
+                               true,
                                exp_x0,exp_y0,w, h);
 #endif
         }
@@ -339,11 +339,11 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
 #if 0
             gdk_draw_rectangle(widget->window,
                                widget->style->bg_gc[GTK_WIDGET_STATE (widget)],
-                               TRUE,
+                               true,
                                exp_x0,exp_y0,w, img_y0-exp_y0);
             gdk_draw_rectangle(widget->window,
                                widget->style->bg_gc[GTK_WIDGET_STATE (widget)],
-                               TRUE,
+                               true,
                                exp_x0, img_y1,w, exp_y1-img_y1);
 #endif
         }
@@ -364,7 +364,7 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
 #if 0
             gdk_draw_rectangle(widget->window,
                                widget->style->bg_gc[GTK_WIDGET_STATE (widget)],
-                               TRUE,
+                               true,
                                exp_x0,exp_y0,w,(img_y0-exp_y0));
 #endif
         }
@@ -376,7 +376,7 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
 #if 0
             gdk_draw_rectangle(widget->window,
                                widget->style->bg_gc[GTK_WIDGET_STATE (widget)],
-                               TRUE,
+                               true,
                                exp_x0,exp_y0,w, h);
 #endif            
         }
@@ -396,7 +396,7 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
 #if 0
             gdk_draw_rectangle(widget->window,
                                widget->style->bg_gc[GTK_WIDGET_STATE (widget)],
-                               TRUE,
+                               true,
                                exp_x0,img_y1,w,exp_y1-img_y1);
 #endif
         }
@@ -828,7 +828,7 @@ QvivImageViewer::zoom_around_fixed_point(double new_scale_x,
     new_y0 = new_scale_y/old_scale_y * (old_y + old_y0) - new_y+0.5;
     
     DBG(printf("old_x0 new_x0 = %f %f\n", old_x0, new_x0));
-    d->view_changed(FALSE, new_scale_x, new_scale_y, new_x0, new_y0);
+    d->view_changed(false, new_scale_x, new_scale_y, new_x0, new_y0);
     
     return 0;
 }

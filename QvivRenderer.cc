@@ -268,8 +268,8 @@ line_hor_line_intersect(double x0, double y0, double x1, double y1,
         *y_cross = x0;
         *x_cross = 0; /* Any x is a crossing */
         if (y1 == line_y)
-            return TRUE;
-        return FALSE;
+            return true;
+        return false;
     }
     
     *y_cross = line_y; /* Obviously! */
@@ -294,8 +294,8 @@ line_ver_line_intersect(double x0, double y0, double x1, double y1,
         *x_cross = x0;
         *y_cross = 0; /* Any y is a crossing */
         if (x1 == line_x)
-            return TRUE;
-        return FALSE;
+            return true;
+        return false;
     }
 
     
@@ -321,10 +321,10 @@ clip_line_to_rectangle(double x0, double y0, double x1, double y1,
     double cross_x[4], cross_y[4];
     
     /* Trivial tests if the point is outside the window on the same side*/
-    if (x0 < rect_x0 && x1 < rect_x0)     return FALSE;
-    if (y0 < rect_y0 && y1 < rect_y0)     return FALSE;
-    if (x0 > rect_x1 && x1 > rect_x1)     return FALSE;
-    if (y0 > rect_y1 && y1 > rect_y1)     return FALSE;
+    if (x0 < rect_x0 && x1 < rect_x0)     return false;
+    if (y0 < rect_y0 && y1 < rect_y0)     return false;
+    if (x0 > rect_x1 && x1 > rect_x1)     return false;
+    if (y0 > rect_y1 && y1 > rect_y1)     return false;
 
     /* Test if p1 is inside the window */
     z0_inside = (   x0 >= rect_x0 && x0 <= rect_x1
@@ -342,7 +342,7 @@ clip_line_to_rectangle(double x0, double y0, double x1, double y1,
     if (z0_inside && z1_inside) {
         *cx0 = x0; *cy0 = y0;
         *cx1 = x1; *cy1 = y1;
-        return TRUE;
+        return true;
     }
 
     /* Check for line intersection with the four edges */
@@ -377,7 +377,7 @@ clip_line_to_rectangle(double x0, double y0, double x1, double y1,
 #endif
     
     if (num_crosses == 0)
-        return FALSE;
+        return false;
     else if (num_crosses == 1) {
         if (z0_inside) {
             *cx1 = cross_x[0];
@@ -390,14 +390,14 @@ clip_line_to_rectangle(double x0, double y0, double x1, double y1,
             *cx1 = x1;
             *cy1 = y1;
         }
-        return TRUE;
+        return true;
     }
     else {
         *cx0 = cross_x[0];
         *cy0 = cross_y[0];
         *cx1 = cross_x[1];
         *cy1 = cross_y[1];
-        return TRUE;
+        return true;
     }
 }
 

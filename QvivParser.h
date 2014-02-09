@@ -3,6 +3,6 @@
 
 void ParseFile(const char *FileName,
                // Output
-               QvivData& *Data);
+               QvivData*& Data);
 
 #endif /* QVIVPARSER */

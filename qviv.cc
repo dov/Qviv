@@ -20,6 +20,9 @@
 #include <QGraphicsRectItem>
 #include <QPaintEvent>
 #include "QvivParser.h"
+#include <iostream>
+
+using namespace std;
 
 class MyApp : public QApplication {
 public:
@@ -41,9 +44,23 @@ MyApp::MyApp(int argc, char *argv[])
     : QApplication(argc, argv)
 {
     d = new Priv;
-    d->w_canvas = new QvivWidget();
-    d->w_quit = new QPushButton(QString::fromUtf8("quit"));
+    int my_argc = this->arguments().count();
+    printf("my_argc = %d\n", my_argc);
+
+    int argp = 1;
+    while(argp < my_argc && arguments().at(argp)[0]=='-') {
+        QString S_ = arguments().at(argp++);
+        // tbd parse
+    }
+
+    // Assume a single image.
+    QImage Image;
+    if (argp < my_argc)
+        Image.load(arguments().at(argp++));
     
+    d->w_canvas = new QvivWidget(NULL, Image);
+    d->w_quit = new QPushButton(QString::fromUtf8("quit"));
+
     QObject::connect(d->w_quit,
                      SIGNAL(clicked()),
                      this,
@@ -70,4 +87,3 @@ int main(int argc, char **argv)
     MyApp app(argc, argv);
     return app.exec();
 }
-
