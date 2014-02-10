@@ -1,8 +1,8 @@
 #ifndef QVIVPARSER_H
 #define QVIVPARSER_H
 
-void ParseFile(const char *FileName,
+void ParseFile(const QString& Filename,
                // Output
-               QvivData*& Data);
+               QvivData& Data);
 
 #endif /* QVIVPARSER */

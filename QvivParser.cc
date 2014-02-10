@@ -7,10 +7,24 @@
 //  Fri Sep  2 14:40:47 2011
 //----------------------------------------------------------------------
 
-#include <stdio.h>
+#include <QString>
+#include <QDebug>
+#include <vector>
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <cstring>
+#include <cstdlib>
+#include <cstdio>
+#include "QvivData.h"
+#include "QvivX11Colors.h"
 
 using namespace std;
 
+#if defined(_WIN32) || defined(_WIN64)
+  #define strncasecmp _strnicmp
+#endif
+  
 // A class containing word boundaries on string.
 class CBoundaries : public vector<pair<int,int> >
 {
@@ -25,13 +39,19 @@ public:
   void ParseBoundaries(const std::string& s);
 
   // Answer whether the string TestString matches the Index'th word.
-  bool CheckMatch(int Index, const char* Candidate);
+  bool CheckMatch(int Index, const char* Candidate) const;
 
   // Get the rest of a string starting at the position.
   const char *GetRestAsString(int Index);
 
   // Get a word as a floating point value.
   double GetFloat(int Index);
+
+  // Get a word as a floating point value.
+  int GetInt(int Index);
+
+  // Get a word as string
+  string GetWordAsString(int Index) const;
 };
 
 // Build the boundaries of all space separated words in the string.
@@ -58,17 +78,18 @@ void CBoundaries::ParseBoundaries(const std::string& s)
 }
 
 // Check if the Index' word matches the Candidate.
-bool CBoundaries::CheckMatch(int Index, const char* Candidate)
+bool CBoundaries::CheckMatch(int Index, const char* Candidate) const
 {
   if (Index >= (int)size())
     return false;
 
-  pair<int,int>& p((*this)[Index]);
+  const pair<int,int>& p((*this)[Index]);
 
   if ((int)strlen(Candidate) != (int)(p.second - p.first))
-    return false;
+      return false;
 
-  return InspectionString->find(Candidate,p.first)==0;
+  return strncasecmp(Candidate,InspectionString->c_str()+p.first,
+                     p.second-p.first) == 0;
 }
 
 // Get the remaining string starting at word number Index
@@ -83,6 +104,20 @@ double CBoundaries::GetFloat(int Index)
   return atof(GetRestAsString(Index));
 }
 
+// Get a word as a floating point value.
+int CBoundaries::GetInt(int Index)
+{
+  return atoi(GetRestAsString(Index));
+}
+
+// Get a word as a floating point value.
+string CBoundaries::GetWordAsString(int Index) const
+{
+    auto p = (*this)[Index];
+    return string(InspectionString->begin() + p.first,
+                  InspectionString->begin() + p.second);
+}
+
 std::ostream& operator<<(std::ostream& os, const CBoundaries&b)
 {
   for (auto p: b)
@@ -90,62 +125,153 @@ std::ostream& operator<<(std::ostream& os, const CBoundaries&b)
   return os;
 }
 
-void ParseFile(const char *FileName,
-               // Output
-               QvivData& *Data)
+QvivMarkType ParseMarks(const CBoundaries& Boundaries,
+                        int index)
 {
-    FILE *GIV;
+    if (Boundaries.CheckMatch(index, "fcircle"))
+        return MARK_TYPE_FCIRCLE;
+    if (Boundaries.CheckMatch(index, "circle"))
+        return MARK_TYPE_CIRCLE;
+    if (Boundaries.CheckMatch(index, "fsquare"))
+        return MARK_TYPE_FSQUARE;
+    if (Boundaries.CheckMatch(index, "square"))
+        return MARK_TYPE_SQUARE;
+    if (Boundaries.CheckMatch(index, "pixel"))
+        return MARK_TYPE_PIXEL;
 
-    GIV = fopen(filename, "rb");
-    if (!GIV)
-	return -1;
+    // Default
+    return MARK_TYPE_FCIRCLE;
+}
 
-    is_new_set = TRUE;
-    gboolean empty_line = false;
-    while(!empty_line) {
-	char S_[256];
-	int len;
-	
-	linenum++;
-	fgets(S_, sizeof(S_), GIV);
-	len = strlen(S_);
+QvivArrowType ParseArrow(const CBoundaries& Boundaries,
+                         int index)
+{
+    if (Boundaries.CheckMatch(index, "start"))
+        return ARROW_TYPE_START;
+    if (Boundaries.CheckMatch(index, "end"))
+        return ARROW_TYPE_END;
+    if (Boundaries.CheckMatch(index, "both"))
+        return ARROW_TYPE_BOTH;
 
-        // Skip damaged sections with all NULLS
-        if (len==0)
-            empty_line = true;
+    // Default
+    return ARROW_TYPE_NONE;
+}
 
-	// Get rid of CR and LF at end of line
-        int org_len = len;
-	while (len>0 && (S_[len-1] == '\r' || S_[len-1] == '\n')) {
-	    S_[len-1] = 0;
-	    len--;
-	}
+QvivColor ParseColor(const CBoundaries& Boundaries,
+                     int index)
+{
+    string ColorString(Boundaries.GetWordAsString(index));
+    if (ColorString == "none")
+        return 0;
+    size_t p;
 
-        // Get out if we didn't get a \r or \n at the end of the line!
-        if (org_len == len)
-            break;
-	
-	if (is_new_set || marks==NULL) {
-	    marks = new_giv_dataset(num_sets);
-	    marks->color = set_colors[num_sets % nmarks_colors];
-	    marks->file_name = g_strdup(filename);
-            g_ptr_array_add(gp->giv_datasets, marks);
-	    
-	    is_new_set = FALSE;
-	    num_sets++;
-	}
-	
-	if (len == 0) {
-	    if (marks && ((GArray*)marks->points)->len > 0)
-		is_new_set++;
-	    continue;
-	}
-
-        giv_parser_giv_marks_data_add_line(gp, marks, S_, filename, linenum);
-
-        if (feof(GIV))
-            break;
+    if (ColorString[0] == '#') {
+        if (ColorString.size() == 7)
+            return QvivColor((strtol(ColorString.c_str()+1, NULL, 16) << 8) + 0xff);
+        else
+            return QvivColor(strtol(ColorString.c_str()+1, NULL, 16));
     }
-    fclose(GIV);
+    if ((p=ColorString.find('/'))!= string::npos) {
+        unsigned int alpha = int(0xffff * atof(ColorString.c_str() + p+1));
+        printf("p s alpha=%d %s %x\n", p, ColorString.c_str()+p+1, alpha);
+        ColorString.erase(p);
+        QvivColor Color = QvivX11Colors::LookupColor(ColorString.c_str());
+        Color.alpha = alpha;
+        return Color;
+    }
+
+    return QvivX11Colors::LookupColor(ColorString.c_str());
+}
+
+void ParseFile(const QString& FileName,
+               // Output
+               QvivData& Data)
+{
+    ifstream is((const char*)FileName.toUtf8());
+    string line;
+    CBoundaries Boundaries;
+    QvivDataSet DataSet;
+
+    while (getline(is,line)) {
+        Boundaries.ParseBoundaries(line);
+        
+        if (Boundaries.size() == 0) {
+            if (DataSet.points.size()) {
+                Data.data_sets.push_back(DataSet);
+                DataSet = QvivDataSet(); // Clear
+            }
+            continue;
+        }
+
+        if (line[0]=='$') {
+          if (Boundaries.CheckMatch(0,"$marks")) {            
+              DataSet.mark_type = ParseMarks(Boundaries,1);
+              DataSet.do_draw_marks = true;
+              continue;
+          }
+          if (Boundaries.CheckMatch(0,"$arrow")) {            
+              DataSet.arrow_type = ParseArrow(Boundaries,1);
+              continue;
+          }
+          if (Boundaries.CheckMatch(0,"$noline")) {            
+              DataSet.do_draw_lines = false;
+              continue;
+          }
+          if (Boundaries.CheckMatch(0,"$color")) {            
+              DataSet.color= ParseColor(Boundaries,1);
+              continue;
+          }
+          if (Boundaries.CheckMatch(0,"$outline_color")) {            
+              DataSet.outline_color= ParseColor(Boundaries,1);
+              continue;
+          }
+          if (Boundaries.CheckMatch(0,"$qviver_color")) {
+              DataSet.quiver_color= ParseColor(Boundaries,1);
+              continue;
+          }
+          if (Boundaries.CheckMatch(0,"$polygon")) {            
+              DataSet.do_draw_polygon = true;
+              continue;
+          }
+          if (Boundaries.CheckMatch(0,"$lw")) {            
+              DataSet.line_width = Boundaries.GetFloat(1);
+              continue;
+          }
+          if (Boundaries.CheckMatch(0,"$mark_size")) {            
+              DataSet.mark_size = Boundaries.GetFloat(1);
+              continue;
+          }
+          if (Boundaries.CheckMatch(0,"$scale_marks")) {
+              if (Boundaries.size()==1)
+                  DataSet.do_scale_marks = 1;
+              else
+                  DataSet.do_scale_marks = Boundaries.GetInt(1);
+              continue;
+          }
+          if (Boundaries.CheckMatch(0,"$scale_fonts")) {
+              if (Boundaries.size()==1)
+                  DataSet.do_scale_fonts = 1;
+              else
+                  DataSet.do_scale_fonts = Boundaries.GetInt(1);
+              continue;
+          }
+  
+          // Ignore unhandled directives
+          continue;
+        }
+
+        if (Boundaries.CheckMatch(0,"m")) {
+            DataSet.add_point(OP_MOVE,
+                              Boundaries.GetFloat(1),
+                              Boundaries.GetFloat(2));
+        }
+        // Handle text and errors, etc.
+        else
+            DataSet.add_point(OP_DRAW,
+                              Boundaries.GetFloat(0),
+                              Boundaries.GetFloat(1));
+    }
+    if (DataSet.points.size()) 
+        Data.data_sets.push_back(DataSet);
 }
     

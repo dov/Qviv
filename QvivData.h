@@ -86,6 +86,16 @@ class QvivBalloons
 class QvivDataSet
 {
   private:
+  public:
+    QvivDataSet(QvivColor _color=QvivColor(0xff0000ff),
+                double line_width=1.0)
+    {
+      SetDefaultVals();
+      color = _color;
+      this->line_width = line_width;
+    }
+    QvivDataSet(QVariantMap Variant);
+
     void SetDefaultVals(void)
     {
         color = 0xff0000ff;
@@ -94,7 +104,7 @@ class QvivDataSet
         num_dashes = 0;
         dashes = NULL;
         do_draw_lines = true;
-        do_draw_marks = true;
+        do_draw_marks = false;
         do_draw_polygon = false;
         has_quiver = false;
         do_draw_polygon_outline = true;
@@ -109,15 +119,6 @@ class QvivDataSet
         arrow_type = ARROW_TYPE_NONE;
     }
 
-  public:
-    QvivDataSet(QvivColor _color=QvivColor(0xff0000ff),
-                double line_width=1.0)
-    {
-      SetDefaultVals();
-      color = _color;
-      this->line_width = line_width;
-    }
-    QvivDataSet(QVariantMap Variant);
 
     QvivColor color;
     QvivColor outline_color;
@@ -126,7 +127,6 @@ class QvivDataSet
     QvivArrowType arrow_type;
     QvivMarkType mark_type;
     double mark_size;
-    bool scale_marks;
     std::vector<QvivPoint> points;
     bool is_visible;
     int num_dashes;

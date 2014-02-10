@@ -19,6 +19,8 @@
 #include <QHBoxLayout>
 #include <QGraphicsRectItem>
 #include <QPaintEvent>
+#include <QDebug>
+#include "QvivData.h"
 #include "QvivParser.h"
 #include <iostream>
 
@@ -55,12 +57,22 @@ MyApp::MyApp(int argc, char *argv[])
 
     // Assume a single image.
     QImage Image;
-    if (argp < my_argc)
-        Image.load(arguments().at(argp++));
+    QvivData *Data = new QvivData; 
+    if (argp < my_argc) {
+        QString Filename = arguments().at(argp++);
+        if (Filename.right(4) == ".giv") {
+            qDebug() << "TODO: a giv file!";
+            ParseFile(Filename,
+                      // output
+                      *Data);
+        }
+        else
+            Image.load(Filename);
+    }
     
-    d->w_canvas = new QvivWidget(NULL, Image);
     d->w_quit = new QPushButton(QString::fromUtf8("quit"));
-
+    d->w_canvas = new QvivWidget(NULL, Image);
+    d->w_canvas->set_qviv_data(Data);
     QObject::connect(d->w_quit,
                      SIGNAL(clicked()),
                      this,

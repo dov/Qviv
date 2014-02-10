@@ -3,6 +3,7 @@
 }
 CONFIG += qt debug 
 QT += widgets
+QMAKE_CXXFLAGS += -std=c++11
 
-SOURCES += qviv.cc 
+SOURCES += qviv.cc QvivParser.cc
 
