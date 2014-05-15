@@ -7,6 +7,7 @@
 #include "QvivData.h"
 #include "QvivX11Colors.h"
 #include <malloc.h>
+#include <string.h>
 
 QvivDataSet::QvivDataSet(QVariantMap variant)
 {
@@ -37,7 +38,6 @@ QvivDataSet::QvivDataSet(QVariantMap variant)
     do_scale_marks = variant["do_scale_marks"].toBool();
 
   quiver_scale = 1.0;
-  font_name = NULL;
   font_size_in_points = 16;
   do_scale_fonts = false;
   mark_type = MARK_TYPE_FCIRCLE;
@@ -88,6 +88,9 @@ char *QvivBalloons::get_balloon_text(int balloon_index)
     return resolver->getString(balloon_index);
   
   if (balloon_index < 0 || balloon_index >= (int)balloon_strings.size())
+    return NULL;
+  
+  if (strlen(balloon_strings[balloon_index])==0)
     return NULL;
   
   return strdup(balloon_strings[balloon_index]);

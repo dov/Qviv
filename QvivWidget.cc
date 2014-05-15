@@ -11,6 +11,9 @@
 #include <QPaintEvent>
 #include <QLabel>
 #include <QEventLoop>
+#include <QApplication>
+#include <QClipboard>
+#include <QTextDocument>
 #include <stdio.h>
 #include <math.h>
 #include "QvivWidget.h"
@@ -18,6 +21,7 @@
 #include "QvivRenderer.h"
 #include "QvivPainterAgg.h"
 #include "QvivLasso.h"
+#include <QRegExp>
 
 static const double RAD2DEG = 180 / 3.1415926535;
 
@@ -427,17 +431,23 @@ void QvivWidget::mouseMoveEvent (QMouseEvent *event)
   
           if (balloon_text)
           {
-            d->w_balloon->setText(balloon_text);
-            d->w_balloon->adjustSize();
-            QPoint p = mapToGlobal(QPoint(event->x(), event->y()));
-  #if 0
-            d->w_balloon->move(window()->geometry().x()+x()+event->x()+5,
-                               window()->geometry().y()+y()+event->y()-d->w_balloon->geometry().height()-5);
-  #endif
-            d->w_balloon->move(p.x()+5,
-                               p.y()-d->w_balloon->geometry().height()-5);
-            d->w_balloon->show();
-            free(balloon_text);
+              // Strip trailing whitespace.
+              QString s(QString::fromUtf8(balloon_text));
+              s.remove(QRegExp("\\s+$"));
+        
+
+              // Keep newlines
+              d->w_balloon->setText(s);
+              d->w_balloon->adjustSize();
+              QPoint p = mapToGlobal(QPoint(event->x(), event->y()));
+#if 0
+              d->w_balloon->move(window()->geometry().x()+x()+event->x()+5,
+                                 window()->geometry().y()+y()+event->y()-d->w_balloon->geometry().height()-5);
+#endif
+              d->w_balloon->move(p.x()+5,
+                                 p.y()-d->w_balloon->geometry().height()-5);
+              d->w_balloon->show();
+              free(balloon_text);
           }
       }
       else
@@ -512,6 +522,18 @@ void QvivWidget::keyPressEvent (QKeyEvent * event)
 
         redraw();
     }
+    // Control-c copies the contents of a balloon
+    else if (event->matches(QKeySequence::Copy))
+    {
+        if (d->do_show_balloon && d->w_balloon->isVisible())
+        {
+            // Convert to plain text via qtextdocument. This is kind of hackish, but it
+            // should be fast enough.
+            QTextDocument doc;
+            doc.setHtml( d->w_balloon->text() );
+            QApplication::clipboard()->setText(doc.toPlainText());
+        }
+    }    
     else if (k=="z")
     {
         d->do_measure = !d->do_measure;
