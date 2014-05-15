@@ -529,8 +529,9 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
         // TBD
     } 
 
-    // Image annotation signal
-    //    img_scaled = img_scaled.convertToFormat(QImage::Format_RGB32);
+    // Image annotation signal. Convert to RGB32 as we can't draw
+    // annotations on other images.
+    img_scaled = img_scaled.convertToFormat(QImage::Format_RGB32);
     imageAnnotate(&img_scaled,
                   -offs_x,-offs_y, 
                   scale_x,

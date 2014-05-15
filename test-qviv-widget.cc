@@ -92,7 +92,7 @@ MyApp::MyApp(int argc, char *argv[])
     {
       QString s;
       s.sprintf("Dataset A, i=%d",i);
-      int balloon_idx = data->balloons.add_balloon(s.toAscii());
+      int balloon_idx = data->balloons.add_balloon(s.toUtf8());
       data_set_large.add_point(OP_MOVE, 181+1.0/n*(i%n), 171+1.0/n*(i/n),balloon_idx);
     }
     data->data_sets.push_back(data_set_large);

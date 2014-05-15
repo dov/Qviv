@@ -221,7 +221,7 @@ void QvivRenderer::paint()
         }
         if (need_check_for_text || has_text) {
             if (dataset->font_name.size())
-                painter.set_font(dataset->font_name.toAscii());
+                painter.set_font(dataset->font_name.toUtf8());
             if (dataset->font_size_in_points > 0 || dataset->do_scale_fonts) {
                 double scale = 1.0;
                 if (dataset->do_scale_fonts)
