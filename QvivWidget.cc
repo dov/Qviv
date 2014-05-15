@@ -136,12 +136,16 @@ class MyLassoDrawing : public QvivLassoDrawing {
 public:
     MyLassoDrawing(QvivWidget *widget)
     {
-        this->x0=this->y0=-HUGE;
-        this->x1=this->y1=-HUGE;
         this->moving = false;
         this->widget = widget;
         this->unit = "pix";
         this->scale = 1.0;
+        reset();
+    }
+    void reset()
+    {
+        this->x0=this->y0=-HUGE;
+        this->x1=this->y1=-HUGE;
     }
     void draw(QPainter *painter,
               QvivLassoContext Context)
@@ -158,10 +162,11 @@ public:
                                         // output
                                         img_x1, img_y1);
         double dist = sqrt((img_x1-img_x0)*(img_x1-img_x0)
-                           + (img_y1-img_y0)*(img_y1-img_y0));
+                           + (img_y1-img_y0)*(img_y1-img_y0))*scale;
 
-        QString DistString = QString("%1%2").arg(dist,0,'f',1).arg(unit);
-        drawCaliper(painter,Context,x0,y0,x1,y1, DistString);
+        QString DistString = QString("%1 %2").arg(dist,0,'f',1).arg(unit).trimmed();
+        QPoint Dxy = widget->mapTo (widget->window(), QPoint(0,0) );
+        drawCaliper(painter,Context,x0+Dxy.x(),y0+Dxy.y(),x1+Dxy.x(),y1+Dxy.y(), DistString);
     }        
     void setXY0(double x, double y)
     {
@@ -222,6 +227,10 @@ public:
     double mx0,my0,mx1,my1; // Measuring in image coordinates
     int last_x, last_y;     // Last measuring coord in canvas coordinates
     double last_shift_x, last_shift_y, last_scale_x, last_scale_y;
+    QCursor PickCursor;
+
+    // Build custom cursors
+    void build_cursors(void);
 };
 
 QvivWidget::QvivWidget(QWidget *parent,
@@ -245,6 +254,7 @@ QvivWidget::QvivWidget(QWidget *parent,
     d->lasso = new QvivLasso(this);
     d->lassoDrawing = new MyLassoDrawing(this);
     d->lasso->setLassoDrawing(d->lassoDrawing);
+    d->build_cursors();
 }
 
 QvivWidget::~QvivWidget()
@@ -252,6 +262,39 @@ QvivWidget::~QvivWidget()
     delete d;
 }
 
+void QvivWidget::Priv::build_cursors(void)
+{
+    // Build the cross cursor
+    
+    // Create a cross cursor. Must be divisible by 2 on Windows
+    const int Size=32;
+    const int S2 = Size/2;
+    QBitmap Cursor(Size,Size);
+    QBitmap Mask(Size,Size);
+
+    // This is convoluted and could be cleaned up.
+    QPainter CursorPainter(&Cursor);
+    QPainter MaskPainter(&Mask);
+    for (int Row=0; Row<Size; Row++)
+      for (int Col=0; Col<Size; Col++)
+      {
+        QColor B(Qt::color0);
+        QColor M(Qt::color0);
+        if ((Col>0 && (Row >= S2-1 && Row <= S2+1))
+            || (Row>0 && (Col >= S2-1 && Col <= S2+1)))
+          M = Qt::color1;
+        if ((Col>0&&Row == S2) || (Row>0&&Col == S2))
+          B = Qt::color1;
+        CursorPainter.setPen(B);
+        CursorPainter.drawPoint(QPoint(Col,Row));
+        MaskPainter.setPen(M);
+        MaskPainter.drawPoint(QPoint(Col,Row));
+      }
+
+    PickCursor = QCursor(Cursor,Mask,S2,S2);
+
+    // TBD - build a measuring tool cursor
+}    
 void QvivWidget::set_qviv_data(QvivData *qviv_data)
 {
   d->qviv_data = qviv_data;
@@ -280,8 +323,11 @@ void QvivWidget::imageAnnotate(QImage *image,
         d->lassoDrawing->setXY1(x1,y1);
     }
 
+    /* Reinstall this for "heavy" datasets */
+#if 0
     if (get_mouse_scrolling())
         return;
+#endif
 
     d->last_shift_x = shift_x;
     d->last_shift_y = shift_y;
@@ -342,7 +388,7 @@ void QvivWidget::imageAnnotate(QImage *image,
 void QvivWidget::resizeEvent(QResizeEvent *event)
 {
   d->lasso->resize(event->size());
-  event->accept();
+  QvivImageViewer::resizeEvent(event);
 }
 
 void QvivWidget::mousePressEvent (QMouseEvent * event)
@@ -375,7 +421,8 @@ void QvivWidget::mousePressEvent (QMouseEvent * event)
                                 // output
                                 imgx,imgy);
         
-        int label = d->lasso->getLabelForPixel(x,y);
+        QPoint Dxy = mapTo (window(), QPoint(0,0) );
+        int label = d->lasso->getLabelForPixel(x+Dxy.x(),y+Dxy.y());
         
         d->picking = label;
         
@@ -536,7 +583,8 @@ void QvivWidget::keyPressEvent (QKeyEvent * event)
     }    
     else if (k=="z")
     {
-        d->do_measure = !d->do_measure;
+        set_measure(!d->do_measure);
+        emit qvivMeasureChanged(d->do_measure);
         redraw();
     }
 
@@ -614,6 +662,24 @@ void QvivWidget::set_view_balloon(bool do_view_balloon)
     redraw();
   else
     d->w_balloon->hide();
+}
+
+void QvivWidget::set_measure_scale_and_unit(double scale, const QString& unit)
+{
+  d->lassoDrawing->setUnitAndScale(unit,scale);
+}
+
+void QvivWidget::set_measure(bool do_measure)
+{
+  d->do_measure = do_measure;
+  if (d->do_measure)
+  {
+      d->lassoDrawing->reset();
+      setCursor(d->PickCursor);
+  }
+  else
+      unsetCursor();
+  redraw();
 }
 
 

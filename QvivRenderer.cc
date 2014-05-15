@@ -111,7 +111,7 @@ void QvivRenderer::paint()
 
                     if (balloon_idx!=prev_balloon_idx)
                     {
-                      painter.set_set_idx(balloon_idx);
+                    painter.set_set_idx(balloon_idx);
                       prev_balloon_idx = balloon_idx;
                     }
 

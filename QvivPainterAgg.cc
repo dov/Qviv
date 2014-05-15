@@ -278,35 +278,7 @@ QvivPainterAgg::add_text(const char *text,
     else if (halign==1)
         flags|= Qt::AlignBottom;
     qpainter.drawText(QRectF(x,y,0,0), flags, text);
-#if 0
-    /* Create a PangoLayout, set the font and text */
-    PangoRectangle logical_rect;
 
-    // Translate the 1-9 square to alignment
-    double h_align = 1.0*((text_align - 1) % 3) / 2.0;
-    double v_align = 1.0-(1.0*((text_align - 1) / 3) / 2.0);
-    if (do_pango_markup)
-        pango_layout_set_markup(d->layout, text, -1);
-    else
-        pango_layout_set_text (d->layout, text, -1);
-
-    pango_layout_get_extents(d->layout,
-                             NULL,
-                             &logical_rect);
-    cairo_move_to(d->cr,
-                  x-h_align/PANGO_SCALE*logical_rect.width,
-                  y-v_align/PANGO_SCALE*logical_rect.height);
-    pango_cairo_show_layout(d->cr, d->layout);
-
-
-#if 0
-    cairo_set_font_size(d->cr, 15);
-    cairo_move_to(d->cr, x,y);
-    cairo_show_text(d->cr, text);
-    cairo_fill(d->cr);
-#endif
-    
-#endif
     return 0;
 }
 

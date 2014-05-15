@@ -178,7 +178,6 @@ QvivX11Colors::QvivX11Colors(void)
   m_NameToColor["MediumTurquoise"]= 0x48d1cc;
   m_NameToColor["MediumVioletRed"]= 0xc71585;
   m_NameToColor["MidnightBlue"]= 0x191970;
-  m_NameToColor["midnightblue"]= 0x191970;
   m_NameToColor["MintCream"]= 0xf5fffa;
   m_NameToColor["MistyRose"]= 0xffe4e1;
   m_NameToColor["MistyRose1"]= 0xffe4e1;

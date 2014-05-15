@@ -26,6 +26,9 @@ public:
                          QPointF& picked_point);
     void set_view_overlay(bool do_view_overlay);
     void set_view_balloon(bool do_view_overlay);
+    void set_measure_scale_and_unit(double scale,
+                                    const QString& unit);
+    void set_measure(bool do_measure);
     void abort_pick_point(void);
     bool is_measuring(void);
       
@@ -41,6 +44,7 @@ protected:
 signals:
     void qvivOverlayChanged(bool view_overlay);
     void qvivBalloonChanged(bool view_overlay);
+    void qvivMeasureChanged(bool measure_changed);
 
 private:
     class Priv;

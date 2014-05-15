@@ -33,7 +33,7 @@ QvivOverlay::~QvivOverlay(void)
   delete d;
 }
 
-void QvivOverlay::paintEvent(QPaintEvent *event)
+void QvivOverlay::paintEvent(QPaintEvent */*event*/)
 {
   QPainter painter(this);
   if (d->overlayPainter)

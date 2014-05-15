@@ -96,7 +96,7 @@ int QvivLasso::getLabelForPixel(int colIdx, int rowIdx)
   QImage labelImage(d->widget->width(), d->widget->height(), QImage::Format_ARGB32);
   QPainter painter(&labelImage);
   painter.fillRect(0,0,labelImage.width(),labelImage.height(),
-                   QColor(0,0,0,0));
+                   QColor(0,0,0,255));
   d->lassoDrawing->draw(&painter, QVIV_LASSO_CONTEXT_LABEL);
   return labelImage.pixel(colIdx, rowIdx) & 0xffffff;
 }
