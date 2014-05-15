@@ -220,8 +220,8 @@ void QvivRenderer::paint()
             }
         }
         if (need_check_for_text || has_text) {
-            if (dataset->font_name)
-                painter.set_font(dataset->font_name);
+            if (dataset->font_name.size())
+                painter.set_font(dataset->font_name.toAscii());
             if (dataset->font_size_in_points > 0 || dataset->do_scale_fonts) {
                 double scale = 1.0;
                 if (dataset->do_scale_fonts)
@@ -245,7 +245,10 @@ void QvivRenderer::paint()
                     // The text is extracted from the balloon db.
                     char *text = data->balloons.get_balloon_text(pt.balloon_index);
                     if (text)
+                    {
                         painter.add_text(text,m_x,m_y,dataset->text_align,false);
+                        free(text);
+                    }
 #if 0
                     const char *text = p.data.text_object->string;
                     int text_align = p.data.text_object->text_align;

@@ -530,7 +530,7 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
     } 
 
     // Image annotation signal
-    img_scaled = img_scaled.convertToFormat(QImage::Format_RGB32);
+    //    img_scaled = img_scaled.convertToFormat(QImage::Format_RGB32);
     imageAnnotate(&img_scaled,
                   -offs_x,-offs_y, 
                   scale_x,
@@ -839,7 +839,7 @@ QvivImageViewer::zoom_in(int x, int y, double factor)
   double zoom_factor[2];
   int zoom_idx;
   if (factor < 0)
-    factor = 1.1;
+    factor = 1.4;
   
   zoom_factor[0] = d->current_scale_x;
   zoom_factor[1] = d->current_scale_y;
@@ -865,20 +865,19 @@ QvivImageViewer::zoom_in(int x, int y, double factor)
   this->zoom_around_fixed_point(zoom_factor[0],
                                 zoom_factor[1],
                                 x, y,
-                                this->size().width()/2,
-                                this->size().height()/2);
+                                x, y);
   
   return 1;
 }
 
 int
-QvivImageViewer::zoom_out(int /*x*/, int /*y*/, double factor)
+QvivImageViewer::zoom_out(int x, int y, double factor)
 {
   double zoom_factor[2];
   int zoom_idx;
   
   if (factor<0)
-    factor = 1.1; 
+    factor = 1.4; 
   
   zoom_factor[0] = d->current_scale_x;
   zoom_factor[1] = d->current_scale_y;
@@ -898,10 +897,7 @@ QvivImageViewer::zoom_out(int /*x*/, int /*y*/, double factor)
   
   this->zoom_around_fixed_point(zoom_factor[0],
                                 zoom_factor[1],
-                                this->size().width()/2,
-                                this->size().height()/2,
-                                this->size().width()/2,
-                                this->size().height()/2
+                                x,y,x,y
                                 );
   return 1;
 }
@@ -1052,12 +1048,18 @@ void QvivImageViewer::resizeEvent ( QResizeEvent * /*event */)
 
 void QvivImageViewer::wheelEvent (QWheelEvent *event)
 {
+    double zoom_strength = 1.4;
+    if ((event->modifiers() & Qt::ShiftModifier)!=0)
+      zoom_strength = 1.1;
+    else if ((event->modifiers() & Qt::ControlModifier)!=0)
+      zoom_strength = 2.0;
+
     int delta=event->delta();
     int num_steps = abs(delta/120);
     if (delta < 0) 
-        zoom_out(event->x(),event->y(),::pow(1.1,num_steps));
+        zoom_out(event->x(),event->y(),::pow(zoom_strength,num_steps));
     else 
-        zoom_in(-1,-1,::pow(1.1,num_steps));
+        zoom_in(event->x(),event->y(),::pow(zoom_strength,num_steps));
 }
 
 void QvivImageViewer::keyPressEvent (QKeyEvent * event)
@@ -1212,6 +1214,8 @@ static QImage pixelScaleReplicate(QImage img_in,
     for (int rs_idx=0; rs_idx<scale_y; rs_idx++) {
       uchar *src=img_in.scanLine(row_idx);
       uchar *dst=img_out.scanLine(row_idx*scale_y+rs_idx);
+      if (!dst)
+        continue;
 
       for (int col_idx=0; col_idx<width_in; col_idx++) {
         for (int cs_idx=0; cs_idx<scale_x; cs_idx++) {

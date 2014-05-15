@@ -110,7 +110,7 @@ class QvivDataSet
         do_draw_polygon_outline = true;
         do_scale_marks = false;
         quiver_scale = 1.0;
-        font_name = NULL;
+        font_name = "";
         font_size_in_points = 16; 
         text_align = 0;
         do_scale_fonts = false;
@@ -138,7 +138,7 @@ class QvivDataSet
     bool do_draw_polygon_outline;
     bool do_scale_marks;
     double quiver_scale;
-    char *font_name;
+    QString font_name;
     int text_align;
     double font_size_in_points;
     double do_scale_fonts;
