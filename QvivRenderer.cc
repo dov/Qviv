@@ -59,10 +59,6 @@ void QvivRenderer::paint()
         if (this->do_no_transparency)
             alpha = 1.0;
 
-#if 0
-        printf("datasets[%d]->color.pixel = %d\n",
-               ds_idx, dataset->color.pixel);
-#endif
         if (dataset->color.alpha == COLOR_NONE) 
             painter.set_color(-1,-1,-1);
         else
@@ -78,6 +74,7 @@ void QvivRenderer::paint()
         double old_x=-1, old_y=-1;
         bool need_paint = false;
         bool has_text = false; // Assume by default we don't have text
+        bool has_sprite = false; // Assume by default we don't have sprites
 
         // Whether we need a a separate sweep for text
         bool need_check_for_text = !(dataset->do_draw_lines
@@ -143,6 +140,8 @@ void QvivRenderer::paint()
                     }
                     else if (pt.op == OP_TEXT) 
                         has_text = true;
+                    else if (pt.op == OP_SPRITE) 
+                        has_sprite = true;
                     old_x = m_x;
                     old_y = m_y;
                 }
@@ -194,6 +193,9 @@ void QvivRenderer::paint()
                 if (pt.op == OP_TEXT) {
                     has_text = true;
                 }
+                else if (pt.op == OP_SPRITE) {
+                    has_sprite = true;
+                }
                 else {
                     double m_x = pt.x * scale_x - shift_x;
                     double m_y = pt.y * scale_y - shift_y;
@@ -206,14 +208,13 @@ void QvivRenderer::paint()
                                      mark_size_x, mark_size_y,
                                      m_x, m_y);
 
-                    if (pt.balloon_index!=prev_balloon_idx)
-                    {
-                      painter.set_set_idx(pt.balloon_index);
-                      prev_balloon_idx = pt.balloon_index;
-                      painter.draw_marks();
+                    if (pt.balloon_index!=prev_balloon_idx) {
+                        painter.set_set_idx(pt.balloon_index);
+                        prev_balloon_idx = pt.balloon_index;
+                        painter.draw_marks();
                     }
                     else
-                      need_paint = true;
+                        need_paint = true;
                 }
                 if (need_paint)
                     painter.draw_marks();
@@ -243,21 +244,30 @@ void QvivRenderer::paint()
                     double m_y = pt.y * scale_y - shift_y;
 
                     // The text is extracted from the balloon db.
-                    char *text = data->balloons.get_balloon_text(pt.balloon_index);
+                    const char *text = data->balloons.get_balloon_text(pt.balloon_index);
                     if (text)
-                    {
                         painter.add_text(text,m_x,m_y,dataset->text_align,false);
-                        free(text);
-                    }
-#if 0
-                    const char *text = p.data.text_object->string;
-                    int text_align = p.data.text_object->text_align;
-                    painter.add_text(text, m_x, m_y, text_align, dataset->do_pango_markup);
-#endif
                 }
             }
             painter.fill();
         }
+        if (has_sprite) {
+            for (int p_idx=0; p_idx<(int)dataset->points.size(); p_idx++) {
+                QvivPoint& pt=dataset->points[p_idx];
+
+                if (pt.op == OP_SPRITE) {
+                    double m_x = pt.x * scale_x - shift_x;
+                    double m_y = pt.y * scale_y - shift_y;
+
+                    // The text is extracted from the balloon db.
+                    const QImage *sprite = data->balloons.get_sprite(pt.balloon_index);
+                    if (sprite)
+                        painter.add_sprite(sprite,m_x,m_y, scale_x, scale_y);
+                }
+            }
+            painter.fill();
+        }
+
     }
 }
 

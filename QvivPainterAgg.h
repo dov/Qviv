@@ -28,6 +28,9 @@ class QvivPainterAgg : public QvivPainter {
                          double x, double y,
                          int text_align,
                          bool do_pango_markup);
+    virtual int add_sprite(const QImage *img,
+                           double x, double y,
+                           double sx, double sy);
     virtual int add_line_segment(double x0, double y0,
                                  double x1, double y1,
                                  bool do_polygon = false

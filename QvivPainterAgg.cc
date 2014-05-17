@@ -282,6 +282,18 @@ QvivPainterAgg::add_text(const char *text,
     return 0;
 }
 
+int
+QvivPainterAgg::add_sprite(const QImage *sprite,
+                           double x, double y,
+                           double sx, double sy)
+{
+    QPainter qpainter(d->image);
+    QRectF dstRect(x,y, sprite->width()*sx, sprite->height()*sy);
+
+    qpainter.drawImage(dstRect, *sprite); 
+    return 0;
+}
+
 int QvivPainterAgg::add_line_segment(double x0, double y0,
                                     double x1, double y1,
                                      bool /*do_polygon*/)

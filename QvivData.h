@@ -12,7 +12,8 @@ enum QvivOp
     OP_MOVE = 0,
     OP_DRAW = 1,
     OP_QUIVER = 2,
-    OP_TEXT = 3
+    OP_TEXT = 3,
+    OP_SPRITE = 4   // A sub image
 };
 
 /* Mark types */
@@ -42,6 +43,7 @@ class BalloonIndexToStringResolver {
     virtual char *getString(int balloon_index) = 0;
 };
 
+// Contain data of a point and the points resource index.
 class QvivPoint
 {
   public:
@@ -57,26 +59,34 @@ class QvivPoint
     QvivOp op;
     double x,y;
     int balloon_index;
-    
 };
 
-// A balloon manager. 
+// Dataset resources. Currently Balloon, text, and sprites and balloon manager. 
 class QvivBalloons
 {
   private:
     std::vector<char*> balloon_strings;
+    std::vector<QImage*> sprites;
     BalloonIndexToStringResolver *resolver;
+    char *resolved_text;
 
   public:
     QvivBalloons(BalloonIndexToStringResolver *_resolver=NULL)
-        : resolver(_resolver) {}
+      : resolver(_resolver),
+        resolved_text(NULL) {}
     ~QvivBalloons();
     int add_balloon(const char *balloon_string);
+    int add_sprite(QImage *sprite);
     void clear(void);
     size_t get_num_ballons(void) {
-      return balloon_strings.size();
+        return balloon_strings.size();
     }
-    char *get_balloon_text(int balloon_index);
+    size_t get_num_sprites(void) {
+        return sprites.size();
+    }
+    const char *get_balloon_text(int balloon_index);
+    const QImage *get_sprite(int sprite_index);
+
     void setResolver(BalloonIndexToStringResolver *_resolver=NULL)
     {
         resolver = _resolver;
@@ -113,9 +123,9 @@ class QvivDataSet
     QvivDataSet(QvivColor _color=QvivColor(0xff0000ff),
                 double line_width=1.0)
     {
-      SetDefaultVals();
-      color = _color;
-      this->line_width = line_width;
+        SetDefaultVals();
+        color = _color;
+        this->line_width = line_width;
     }
     QvivDataSet(QVariantMap Variant);
 
@@ -142,6 +152,7 @@ class QvivDataSet
     int text_align;
     double font_size_in_points;
     double do_scale_fonts;
+    QString balloon_text;
 
     void add_point(QvivOp op, double x, double y, int ballon_index=-1)
     {
@@ -159,8 +170,8 @@ class QvivData
     QvivBalloons balloons;
   
     void clear(void) {
-      balloons.clear();
-      data_sets.clear();
+        balloons.clear();
+        data_sets.clear();
     }
 };
 

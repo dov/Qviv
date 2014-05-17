@@ -474,7 +474,7 @@ void QvivWidget::mouseMoveEvent (QMouseEvent *event)
   
       if (label_color >= 0xff000000 && label > 0)
       {
-          char *balloon_text = d->qviv_data->balloons.get_balloon_text(label-1);
+          const char *balloon_text = d->qviv_data->balloons.get_balloon_text(label-1);
   
           if (balloon_text)
           {
@@ -494,7 +494,6 @@ void QvivWidget::mouseMoveEvent (QMouseEvent *event)
               d->w_balloon->move(p.x()+5,
                                  p.y()-d->w_balloon->geometry().height()-5);
               d->w_balloon->show();
-              free(balloon_text);
           }
       }
       else

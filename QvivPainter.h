@@ -33,6 +33,9 @@ class QvivPainter {
                          double x, double y,
                          int text_align,
                          bool do_pango_markup) = 0;
+    virtual int add_sprite(const QImage *sprite,
+                           double x, double y,
+                           double sx, double sy) = 0;
     virtual void draw_marks() = 0;
     virtual void fill() = 0;
     virtual void stroke() = 0;
