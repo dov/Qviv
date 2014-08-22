@@ -58,14 +58,14 @@ MyApp::MyApp(int argc, char *argv[])
 
     // Add some points
     QvivData *data = new QvivData;
-    QImage *sprite = new QImage("drop.svg");
+    QImage *sprite = new QImage("../test-data/drop.svg");
     int sprite_id = data->balloons.add_sprite(sprite);
 
     QvivDataSet data_set(QvivColor(0x00ff0080),10);
     for (int i=0; i<5; i++) {
         double theta = i*M_PI/2;
-        double x=cos(theta)*100;
-        double y=sin(theta)*100;
+        double x=100+cos(theta)*100;
+        double y=100+sin(theta)*100;
         data_set.add_point(OP_DRAW, x,y);
     }
     data->data_sets.push_back(data_set);
