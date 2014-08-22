@@ -1,5 +1,0 @@
-Qviv
-A Qt Viewer for the Giv file format.
-Dov Grobgeld <dov.grobgeld@gmail.com>
-
-This is a reimplementation of the GtkImageViewer the the GivWidget in Qt.

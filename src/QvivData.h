@@ -104,7 +104,7 @@ class QvivDataSet
         num_dashes = 0;
         dashes = NULL;
         do_draw_lines = true;
-        do_draw_marks = true;
+        do_draw_marks = false;
         do_draw_polygon = false;
         has_quiver = false;
         do_draw_polygon_outline = true;

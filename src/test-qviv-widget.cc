@@ -84,7 +84,6 @@ MyApp::MyApp(int argc, char *argv[])
       data_set2.add_point(OP_MOVE, points[i].x+2,points[i].y,balloonC);
     data->data_sets.push_back(data_set2);
 
-#if 0
     // Create a large dataset.
     QvivDataSet data_set_large(QvivColor(0x80606040));
     int n = 100;
@@ -96,7 +95,6 @@ MyApp::MyApp(int argc, char *argv[])
       data_set_large.add_point(OP_MOVE, 181+1.0/n*(i%n), 171+1.0/n*(i/n),balloon_idx);
     }
     data->data_sets.push_back(data_set_large);
-#endif
 
     // Test text
     int text_id = data->balloons.add_balloon("TopLeft");
