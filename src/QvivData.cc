@@ -9,6 +9,9 @@
 #include "QvivX11Colors.h"
 #include <malloc.h>
 #include <string.h>
+#include <limits>
+
+using namespace std;
 
 QvivDataSet::QvivDataSet(QVariantMap variant)
 {
@@ -143,4 +146,25 @@ QvivData::QvivData(QVariant variant)
         for (QVariantList::iterator it=BalloonList.begin(); it!=BalloonList.end(); ++it)
             balloons.add_balloon(it->toString().toUtf8());
       }
+}
+
+void QvivData::get_bounds(double& xmin,
+                          double& ymin,
+                          double& xmax,
+                          double& ymax)
+{
+    xmin = ymin = numeric_limits<double>::max();
+    xmax = ymax = numeric_limits<double>::min();
+
+    for (auto& ds : data_sets)
+        for (auto& p : ds.points) {
+            if (p.x < xmin)
+                xmin = p.x;
+            if (p.x > xmax)
+                xmax = p.x;
+            if (p.y < ymin)
+                ymin = p.y;
+            if (p.y > ymax)
+                ymax = p.y;
+        }
 }

@@ -73,6 +73,10 @@ MyApp::MyApp(int argc, char *argv[])
     d->w_quit = new QPushButton(QString::fromUtf8("quit"));
     d->w_canvas = new QvivWidget(NULL, Image);
     d->w_canvas->set_qviv_data(Data);
+    double xmin,ymin,xmax,ymax;
+    Data->get_bounds(// output
+                     xmin,ymin,xmax,ymax);
+    d->w_canvas->set_scroll_area(xmin,ymin,xmax,ymax);
     QObject::connect(d->w_quit,
                      SIGNAL(clicked()),
                      this,

@@ -173,6 +173,12 @@ class QvivData
         balloons.clear();
         data_sets.clear();
     }
+
+    // Get the numeric bounds of all the datasets
+    void get_bounds(double& xmin,
+                    double& ymin,
+                    double& xmax,
+                    double& ymax);
 };
 
 #endif /* QVIVDATA */
