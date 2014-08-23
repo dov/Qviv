@@ -167,6 +167,7 @@ class QvivData
     QvivData(QVariant Variant);
 
     std::vector<QvivDataSet> data_sets;
+    std::vector<QString> images; // Reference to external files
     QvivBalloons balloons;
   
     void clear(void) {

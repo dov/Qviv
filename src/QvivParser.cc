@@ -255,6 +255,12 @@ void ParseFile(const QString& FileName,
                   DataSet.do_scale_fonts = Boundaries.GetInt(1);
               continue;
           }
+
+          // References to images
+          if (Boundaries.CheckMatch(0,"$image")) {
+              if (Boundaries.size()==2)
+                  Data.images.push_back(Boundaries.GetWordAsString(1).c_str());
+          }
   
           // Ignore unhandled directives
           continue;

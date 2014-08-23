@@ -20,8 +20,11 @@
 #include <QGraphicsRectItem>
 #include <QPaintEvent>
 #include <QDebug>
+#include <QFileInfo>
+#include <QDir>
 #include "QvivData.h"
 #include "QvivParser.h"
+
 #include <iostream>
 
 using namespace std;
@@ -57,9 +60,13 @@ MyApp::MyApp(int argc, char *argv[])
 
     // Assume a single image.
     QImage Image;
-    QvivData *Data = new QvivData; 
+    QvivData *Data = new QvivData;
+    QString RelPath;
     if (argp < my_argc) {
         QString Filename = arguments().at(argp++);
+        QFileInfo fi(Filename);
+        RelPath = fi.absoluteDir().absolutePath();
+
         if (Filename.right(4) == ".giv") {
             qDebug() << "TODO: a giv file!";
             ParseFile(Filename,
@@ -76,6 +83,16 @@ MyApp::MyApp(int argc, char *argv[])
     double xmin,ymin,xmax,ymax;
     Data->get_bounds(// output
                      xmin,ymin,xmax,ymax);
+    // Check for image references and load the first image
+    if (Data->images.size()) {
+        QString Filename = Data->images[0];
+        // TBD - add path from GivFilename to image so that it is relative.
+        if (!(Filename.contains("/") || Filename.contains("\\")))
+            Filename = RelPath + "/" + Filename;
+        Image.load(Filename);
+        d->w_canvas->set_image(Image);
+    }
+
     d->w_canvas->set_scroll_area(xmin,ymin,xmax,ymax);
     QObject::connect(d->w_quit,
                      SIGNAL(clicked()),
