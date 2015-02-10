@@ -1092,8 +1092,8 @@ void QvivImageViewer::keyPressEvent (QKeyEvent * event)
 // Map scrollbar changes to internal view changes
 void QvivImageViewer::scrollContentsBy (int /*dx*/, int /*dy*/)
 {
-    int x0 = 0;
-    int  y0 = 0;
+    double x0 = 0;
+    double  y0 = 0;
     if (d->image.width()==0) {
         x0 = d->scroll_min_x*d->current_scale_x;
         y0 = d->scroll_min_y*d->current_scale_y;

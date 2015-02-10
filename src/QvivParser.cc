@@ -173,7 +173,6 @@ QvivColor ParseColor(const CBoundaries& Boundaries,
     }
     if ((p=ColorString.find('/'))!= string::npos) {
         unsigned int alpha = int(0xffff * atof(ColorString.c_str() + p+1));
-        printf("p s alpha=%d %s %x\n", p, ColorString.c_str()+p+1, alpha);
         ColorString.erase(p);
         QvivColor Color = QvivX11Colors::LookupColor(ColorString.c_str());
         Color.alpha = alpha;

@@ -9,6 +9,7 @@
 #define QVIVPAINTER_H
 
 #include "QvivData.h"
+#include "agg/agg_svg_path_renderer.h"
 
 class QvivPainter {
  public:
@@ -29,6 +30,8 @@ class QvivPainter {
     virtual int add_line_segment(double x0, double y0,
                                  double x1, double y1,
                                  bool do_polygon = 0) = 0;
+    virtual void close_path(void) = 0;
+
     virtual int add_text(const char *text,
                          double x, double y,
                          int text_align,
@@ -49,6 +52,9 @@ class QvivPainter {
                            double arrow_d4=-1,
                            double arrow_d5=-1
                            )=0;
+    virtual void render_svg_path(agg::svg::path_renderer*svg,
+                                 double mx, double my,
+                                 double scalex, double scaley) = 0;
 };
 
 #endif /* QVIVPAINTER */

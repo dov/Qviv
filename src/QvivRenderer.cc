@@ -130,6 +130,8 @@ void QvivRenderer::paint()
                             need_paint = true;
                         }
                     }
+                    else if (i < 2 && pt.op == OP_CLOSEPATH)
+                      painter.close_path();
                     else if (pt.op == OP_QUIVER) {
                         double qscale = dataset->quiver_scale;
                         double q_x = old_x + pt.x * scale_x * qscale;
@@ -269,6 +271,9 @@ void QvivRenderer::paint()
         }
 
     }
+
+    painter.render_svg_path(&data->svg,
+                            -shift_x,-shift_y,scale_x,scale_y);
 }
 
 static inline bool

@@ -26,6 +26,12 @@
 #include "agg/agg_vcgen_markers_term.h"
 #include "giv_agg_arrowhead.h"
 #include "agg_conv_clipper.h"
+#include "agg/agg_ellipse.h"
+#include "agg/agg_scanline_p.h"
+#include "agg/agg_path_storage.h"
+#include "agg/agg_pixfmt_gray.h"
+#include "agg/agg_svg_parser.h"
+#include "agg/agg_blur.h"
 #include "math.h"
 
 using namespace std;
@@ -308,6 +314,11 @@ int QvivPainterAgg::add_line_segment(double x0, double y0,
     return 0;
 }
 
+void QvivPainterAgg::close_path(void)
+{
+    d->path.close_polygon();
+}
+
 void QvivPainterAgg::fill()
 {
     agg::rgba color;
@@ -475,4 +486,21 @@ QvivPainterAgg::label_to_color(int label,
     bb = 1.0/255*((label+1) % 256);
     gg = 1.0/255*(((label+1) >> 8) % 256);
     rr = 1.0/255*(((label+1) >> 16) % 256);
+}
+
+void QvivPainterAgg::render_svg_path(agg::svg::path_renderer*svg,
+                                     double mx, double my,
+                                     double scalex, double scaley)
+{
+  agg::trans_affine AggTransform(scalex,0,0,scaley,mx,my); 
+  typedef agg::pixfmt_rgba32 pixfmt;
+  typedef agg::renderer_base<pixfmt> renderer_base;
+  typedef agg::renderer_scanline_aa_solid<renderer_base> renderer_solid;
+  renderer_solid ren(d->rbase);
+
+  // Render the svg in the buffer.
+  svg->render(d->pf, d->sl, ren,
+              AggTransform,
+              d->rbase.clip_box()
+              );
 }

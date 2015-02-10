@@ -2,6 +2,7 @@
 #ifndef QVIVDATA_H
 #define QVIVDATA_H
 
+#include "agg/agg_svg_path_renderer.h"
 #include <QVariant>
 #include <QColor>
 #include <vector>
@@ -11,9 +12,10 @@ enum QvivOp
 {
     OP_MOVE = 0,
     OP_DRAW = 1,
-    OP_QUIVER = 2,
-    OP_TEXT = 3,
-    OP_SPRITE = 4   // A sub image
+    OP_CLOSEPATH = 2,
+    OP_QUIVER = 3,
+    OP_TEXT = 4,
+    OP_SPRITE = 5   // A sub image
 };
 
 /* Mark types */
@@ -167,7 +169,8 @@ class QvivData
     QvivData(QVariant Variant);
 
     std::vector<QvivDataSet> data_sets;
-    std::vector<QString> images; // Reference to external files
+    std::vector<QString> images;  // Reference to external files
+    agg::svg::path_renderer svg;  // svg path
     QvivBalloons balloons;
   
     void clear(void) {

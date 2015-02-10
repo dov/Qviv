@@ -167,4 +167,13 @@ void QvivData::get_bounds(double& xmin,
             if (p.y > ymax)
                 ymax = p.y;
         }
+
+    if (xmin == numeric_limits<double>::max()) {
+      double mx,my,Mx,My;
+      svg.bounding_rect(&mx,&my,&Mx,&My);
+
+      xmin = mx; ymin=my;
+      xmax = Mx; ymax = My;
+    }
 }
+

@@ -11,6 +11,7 @@
  *
  */
 #include <stdio.h>
+#include <fstream>
 #include "QvivWidget.h"
 #include <QApplication>
 #include <QPushButton>
@@ -24,7 +25,7 @@
 #include <QDir>
 #include "QvivData.h"
 #include "QvivParser.h"
-
+#include "agg/agg_svg_parser.h"
 #include <iostream>
 
 using namespace std;
@@ -67,7 +68,26 @@ MyApp::MyApp(int argc, char *argv[])
         QFileInfo fi(Filename);
         RelPath = fi.absoluteDir().absolutePath();
 
-        if (Filename.right(4) == ".giv") {
+        if (Filename.right(4) == ".svg") {
+          agg::svg::parser Parser(Data->svg);
+          Parser.set_swap_red_blue(true);  // Needed for Qt
+          string SvgString;;
+          std::ifstream Stream;
+        
+          Stream.open((const char*)Filename.toUtf8(),ios_base::in|ios::binary);
+          if (!Stream.good()) {
+              // tbd die gracefully
+            printf("Failed opening file!");
+            exit(-1);
+          }
+        
+          SvgString.assign((std::istreambuf_iterator<char>(Stream)), std::istreambuf_iterator<char>());
+          Stream.close();
+          
+          Parser.parse_string(SvgString.c_str());
+          
+        }
+        else if (Filename.right(4) == ".giv") {
             qDebug() << "TODO: a giv file!";
             ParseFile(Filename,
                       // output

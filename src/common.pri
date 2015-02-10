@@ -10,7 +10,7 @@ debug:MOC_DIR = debug/.moc
 debug:RCC_DIR = debug/.rcc
 debug:UI_DIR = debug/.ui
 
-QMAKE_CXXFLAGS+= -Wno-unused-parameter
+QMAKE_CXXFLAGS+= -Wno-unused-parameter -Wno-reorder
 
 HEADERS = QvivImageViewer.h \
           QvivWidget.h \
@@ -60,4 +60,8 @@ SOURCES =  \
     agg/agg_vcgen_stroke.cpp \
     agg/agg_vpgen_clip_polygon.cpp \
     agg/agg_vpgen_clip_polyline.cpp \
-    agg/agg_vpgen_segmentator.cpp 
+    agg/agg_vpgen_segmentator.cpp \
+    agg/agg_svg_parser.cpp \
+    agg/agg_svg_path_renderer.cpp \
+    agg/agg_svg_path_tokenizer.cpp
+
