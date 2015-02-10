@@ -69,9 +69,13 @@ MyApp::MyApp(int argc, char *argv[])
         RelPath = fi.absoluteDir().absolutePath();
 
         if (Filename.right(4) == ".svg") {
-          agg::svg::parser Parser(Data->svg);
+          agg::svg::path_renderer svg;
+          agg::svg::parser Parser(svg);
+          agg::trans_affine m;
+          m.scale(0.5);
+          svg.transform(m);
           Parser.set_swap_red_blue(true);  // Needed for Qt
-          string SvgString;;
+          string SvgString;
           std::ifstream Stream;
         
           Stream.open((const char*)Filename.toUtf8(),ios_base::in|ios::binary);
@@ -85,7 +89,8 @@ MyApp::MyApp(int argc, char *argv[])
           Stream.close();
           
           Parser.parse_string(SvgString.c_str());
-          
+          QvivDataSet DataSet(svg);
+          Data->data_sets.push_back(DataSet);
         }
         else if (Filename.right(4) == ".giv") {
             qDebug() << "TODO: a giv file!";

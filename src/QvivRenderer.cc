@@ -48,7 +48,12 @@ void QvivRenderer::paint()
         QvivDataSet *dataset = &data->data_sets[ds_idx];
         if (!dataset->is_visible)
             continue;
-        
+
+        if (dataset->has_svg)
+            // TBD - add transformation
+            painter.render_svg_path(&dataset->svg,
+                                    -shift_x,-shift_y,scale_x,scale_y);
+
         painter.set_set_idx(ds_idx);
 
         // Create negative color values for "invisible" datasets
@@ -271,9 +276,6 @@ void QvivRenderer::paint()
         }
 
     }
-
-    painter.render_svg_path(&data->svg,
-                            -shift_x,-shift_y,scale_x,scale_y);
 }
 
 static inline bool

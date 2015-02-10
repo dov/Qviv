@@ -129,7 +129,15 @@ class QvivDataSet
         color = _color;
         this->line_width = line_width;
     }
-    QvivDataSet(QVariantMap Variant);
+    QvivDataSet(QVariantMap variant);
+    QvivDataSet(const agg::svg::path_renderer& svg);
+
+    void clear()
+    {
+      SetDefaultVals();
+      has_svg = false;
+      points.clear();
+    }
 
     QvivColor color;
     QvivColor outline_color;
@@ -155,6 +163,8 @@ class QvivDataSet
     double font_size_in_points;
     double do_scale_fonts;
     QString balloon_text;
+    agg::svg::path_renderer svg;  // svg path
+    bool has_svg { false };
 
     void add_point(QvivOp op, double x, double y, int ballon_index=-1)
     {
@@ -170,7 +180,6 @@ class QvivData
 
     std::vector<QvivDataSet> data_sets;
     std::vector<QString> images;  // Reference to external files
-    agg::svg::path_renderer svg;  // svg path
     QvivBalloons balloons;
   
     void clear(void) {

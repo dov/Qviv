@@ -68,6 +68,14 @@ QvivDataSet::QvivDataSet(QVariantMap variant)
       }
 }
 
+QvivDataSet::QvivDataSet(const agg::svg::path_renderer& svg) :
+    svg(svg),
+    has_svg(true)
+{
+    SetDefaultVals();
+    has_svg = true;
+}
+
 QvivBalloons::~QvivBalloons()
 {
     clear();
@@ -130,6 +138,7 @@ const QImage *QvivBalloons::get_sprite(int sprite_index)
 // Create a dataset from a QVariant
 QvivData::QvivData(QVariant variant)
 {
+    // disabled for now
   if (variant.type() != QVariant::Map)
       return;
 
@@ -138,7 +147,7 @@ QvivData::QvivData(QVariant variant)
       {
         QVariantList DataSets = map["data_sets"].toList();
         for (QVariantList::iterator it=DataSets.begin(); it!=DataSets.end(); ++it)
-            data_sets.push_back(QvivDataSet(it->toMap()));
+            data_sets.emplace_back(it->toMap());
       }
   if (map.contains("balloons"))
       {
@@ -156,7 +165,21 @@ void QvivData::get_bounds(double& xmin,
     xmin = ymin = numeric_limits<double>::max();
     xmax = ymax = numeric_limits<double>::min();
 
-    for (auto& ds : data_sets)
+    for (auto& ds : data_sets) {
+        if (ds.has_svg) {
+            double mx,my,Mx,My;
+            ds.svg.bounding_rect(&mx,&my,&Mx,&My);
+            
+            if (mx < xmin)
+                xmin = mx;
+            if (Mx > xmax)
+                xmax = Mx;
+            if (my < ymin)
+                ymin = my;
+            if (My > ymax)
+                ymax = My;
+        }
+
         for (auto& p : ds.points) {
             if (p.x < xmin)
                 xmin = p.x;
@@ -167,13 +190,7 @@ void QvivData::get_bounds(double& xmin,
             if (p.y > ymax)
                 ymax = p.y;
         }
-
-    if (xmin == numeric_limits<double>::max()) {
-      double mx,my,Mx,My;
-      svg.bounding_rect(&mx,&my,&Mx,&My);
-
-      xmin = mx; ymin=my;
-      xmax = Mx; ymax = My;
     }
+
 }
 

@@ -197,7 +197,7 @@ void ParseFile(const QString& FileName,
         if (Boundaries.size() == 0) {
             if (DataSet.points.size()) {
                 Data.data_sets.push_back(DataSet);
-                DataSet = QvivDataSet(); // Clear
+                DataSet.clear();
             }
             continue;
         }

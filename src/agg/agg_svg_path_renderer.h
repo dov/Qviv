@@ -116,9 +116,9 @@ namespace svg
         // Copy constructor
         path_attributes(const path_attributes& attr) :
             index(attr.index),
-            opacity(attr.opacity),
             fill_color(attr.fill_color),
             stroke_color(attr.stroke_color),
+            opacity(attr.opacity),
             fill_flag(attr.fill_flag),
             stroke_flag(attr.stroke_flag),
             even_odd_flag(attr.even_odd_flag),
@@ -165,6 +165,32 @@ namespace svg
         typedef conv_contour<curved_trans>     curved_trans_contour;
     
         path_renderer();
+        path_renderer(const path_renderer& other) :
+          m_storage(other.m_storage),
+          m_attr_storage(other.m_attr_storage),
+          m_attr_stack(other.m_attr_stack),
+          m_transform(other.m_transform),
+          m_user_transform(other.m_user_transform),
+
+          m_curved(m_storage),
+          m_curved_count(m_curved),
+  
+          m_curved_stroked(m_curved_count),
+          m_curved_stroked_trans(m_curved_stroked, m_transform),
+  
+          m_curved_trans(m_curved_count, m_transform),
+          m_curved_trans_contour(m_curved_trans) { }
+
+        const path_renderer& operator=(const path_renderer& other)
+        {
+            m_storage = other.m_storage;
+            m_attr_storage = other.m_attr_storage;
+            m_attr_stack = other.m_attr_stack;
+            m_transform = other.m_transform; 
+            m_user_transform = other.m_user_transform;
+
+            return *this;
+        }
 
         void remove_all();
 
@@ -276,12 +302,14 @@ namespace svg
 
             ras.clip_box(cb.x1, cb.y1, cb.x2, cb.y2);
             m_curved_count.count(0);
+            trans_affine umtx = m_user_transform;
+            umtx *= mtx;
 
             for(i = 0; i < m_attr_storage.size(); i++)
             {
                 const path_attributes& attr = m_attr_storage[i];
                 m_transform = attr.transform;
-                m_transform *= mtx;
+                m_transform *= umtx;
                 double scl = m_transform.scale();
                 //m_curved.approximation_method(curve_inc);
                 m_curved.approximation_scale(scl);
@@ -344,6 +372,16 @@ namespace svg
             }
         }
 
+        void transform(trans_affine transform)
+        {
+            m_user_transform = transform * m_user_transform;
+        }
+
+        void reset_transform()
+        {
+            m_user_transform = trans_affine();
+        }
+
     private:
         path_attributes& cur_attr();
 
@@ -351,6 +389,7 @@ namespace svg
         attr_storage   m_attr_storage;
         attr_storage   m_attr_stack;
         trans_affine   m_transform;
+        trans_affine   m_user_transform;
 
         curved                       m_curved;
         curved_count                 m_curved_count;
