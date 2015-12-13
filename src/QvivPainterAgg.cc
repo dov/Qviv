@@ -495,11 +495,9 @@ void QvivPainterAgg::render_svg_path(agg::svg::path_renderer*svg,
   agg::trans_affine AggTransform(scalex,0,0,scaley,mx,my); 
   typedef agg::pixfmt_rgba32 pixfmt;
   typedef agg::renderer_base<pixfmt> renderer_base;
-  typedef agg::renderer_scanline_aa_solid<renderer_base> renderer_solid;
-  renderer_solid ren(d->rbase);
 
   // Render the svg in the buffer.
-  svg->render(d->pf, d->sl, ren,
+  svg->render(d->pf, d->sl, d->rbase,
               AggTransform,
               d->rbase.clip_box()
               );

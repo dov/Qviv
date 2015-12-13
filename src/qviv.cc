@@ -71,9 +71,11 @@ MyApp::MyApp(int argc, char *argv[])
         if (Filename.right(4) == ".svg") {
           agg::svg::path_renderer svg;
           agg::svg::parser Parser(svg);
+#if 0
           agg::trans_affine m;
           m.scale(0.5);
           svg.transform(m);
+#endif
           Parser.set_swap_red_blue(true);  // Needed for Qt
           string SvgString;
           std::ifstream Stream;

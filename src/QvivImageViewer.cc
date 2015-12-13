@@ -704,10 +704,10 @@ QvivImageViewer::Priv::view_changed(int do_force,
         dx = -dx;
     if (this->do_flip_vertical)
         dy = -dy;
-    int src_x = (dx < 0) ? 0 : dx;
-    int src_y = (dy < 0) ? 0 : dy;
-    int dst_x = (dx < 0) ? -dx : 0;
-    int dst_y = (dy < 0) ? -dy : 0;
+    double src_x = (dx < 0) ? 0 : dx;
+    double src_y = (dy < 0) ? 0 : dy;
+    double dst_x = (dx < 0) ? -dx : 0;
+    double dst_y = (dy < 0) ? -dy : 0;
 
     this->current_x0 = x0;
     this->current_y0 = y0;
@@ -723,16 +723,16 @@ QvivImageViewer::Priv::view_changed(int do_force,
     DBG2(g_print("Filling in: dx dy = %d %d\n", dx, dy));
     /* And fill in the new areas */
     if (dx) {
-      int x = (dx < 0) ? 0 : widget->viewport()->size().width() - dx;
-      int width = abs(dx);
-      int height = widget->viewport()->size().height();
+      double x = (dx < 0) ? 0 : widget->viewport()->size().width() - dx;
+      double width = fabs(dx);
+      double height = widget->viewport()->size().height();
 
       widget->viewport()->update(x,0,width,height);
     }
     if (dy) {
-      int y = (dy < 0) ? 0 : widget->viewport()->size().height() - dy;
-      int width = widget->viewport()->size().width();
-      int height = abs(dy);
+      double y = (dy < 0) ? 0 : widget->viewport()->size().height() - dy;
+      double width = widget->viewport()->size().width();
+      double height = fabs(dy);
           
       widget->viewport()->update(0,y,width,height);
     }
@@ -747,8 +747,8 @@ QvivImageViewer::Priv::view_changed(int do_force,
       /* Remember the current transform */
       this->current_scale_x = scale_x;
       this->current_scale_y = scale_y;
-      this->current_x0 = (int)x0;
-      this->current_y0 = (int)y0;
+      this->current_x0 = x0;
+      this->current_y0 = y0;
       
       widget->viewport()->update();
   }

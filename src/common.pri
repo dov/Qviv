@@ -11,6 +11,8 @@ debug:RCC_DIR = debug/.rcc
 debug:UI_DIR = debug/.ui
 
 QMAKE_CXXFLAGS+= -Wno-unused-parameter -Wno-reorder
+INCLUDEPATH += agg
+CONFIG += c++11
 
 HEADERS = QvivImageViewer.h \
           QvivWidget.h \
@@ -63,5 +65,7 @@ SOURCES =  \
     agg/agg_vpgen_segmentator.cpp \
     agg/agg_svg_parser.cpp \
     agg/agg_svg_path_renderer.cpp \
-    agg/agg_svg_path_tokenizer.cpp
+    agg/agg_svg_path_tokenizer.cpp \
+    agg/agg_svg_gradient.cpp
 
+LIBS += -lexpat
