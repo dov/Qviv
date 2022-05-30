@@ -103,6 +103,7 @@ namespace agg
                 ++m_marker;
                 m_num_markers = 0;
                 m_status = markers;
+                // fallthrough
 
             case markers:
                 if(is_stop(m_marker_locator->vertex(&x1, &y1)))
@@ -121,6 +122,7 @@ namespace agg
                 m_mtx *= trans_affine_translation(x1, y1);
                 m_marker_shapes->rewind(m_marker - 1);
                 m_status = polygon;
+                // fallthrough
 
             case polygon:
                 cmd = m_marker_shapes->vertex(x, y);

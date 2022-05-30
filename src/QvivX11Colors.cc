@@ -87,6 +87,7 @@ QvivX11Colors::QvivX11Colors(void)
   m_NameToColor["DodgerBlue4"]= 0x104e8b;
   m_NameToColor["FloralWhite"]= 0xfffaf0;
   m_NameToColor["ForestGreen"]= 0x228b22;
+  m_NameToColor["Fuchsia"]= 0xff0ff;
   m_NameToColor["GhostWhite"]= 0xf8f8ff;
   m_NameToColor["GreenYellow"]= 0xadff2f;
   m_NameToColor["HotPink"]= 0xff69b4;
@@ -368,6 +369,7 @@ QvivX11Colors::QvivX11Colors(void)
   m_NameToColor["firebrick4"]= 0x8b1a1a;
   m_NameToColor["floral white"]= 0xfffaf0;
   m_NameToColor["forest green"]= 0x228b22;
+  m_NameToColor["fuchsia"]= 0xff0ff;
   m_NameToColor["gainsboro"]= 0xdcdcdc;
   m_NameToColor["ghost white"]= 0xf8f8ff;
   m_NameToColor["gold"]= 0xffd700;

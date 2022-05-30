@@ -79,16 +79,16 @@ public:
     void set_frozen(bool frozen);
 
 protected:
-    void paintEvent(QPaintEvent * event);
-    void resizeEvent ( QResizeEvent * event );
-    void mousePressEvent (QMouseEvent * event);
-    void mouseReleaseEvent (QMouseEvent * event);
-    void mouseMoveEvent (QMouseEvent *event);
-    void wheelEvent (QWheelEvent *event);
-    void keyPressEvent (QKeyEvent * event);
-    void scrollContentsBy (int dx, int dy);
-    void leaveEvent(QEvent *event);
-    QSize sizeHint() const;
+    void paintEvent(QPaintEvent * event) override;
+    void resizeEvent ( QResizeEvent * event ) override;
+    void mousePressEvent (QMouseEvent * event) override;
+    void mouseReleaseEvent (QMouseEvent * event) override;
+    void mouseMoveEvent (QMouseEvent *event) override;
+    void wheelEvent (QWheelEvent *event) override;
+    void keyPressEvent (QKeyEvent * event) override;
+    void scrollContentsBy (int dx, int dy) override;
+    void leaveEvent(QEvent *event) override;
+    QSize sizeHint() const override;
     virtual void imageAnnotate(QImage* image,
                                int x0, int y0,
                                double scale_x, double scale_y);
@@ -100,6 +100,7 @@ signals:
     void qvivImageAnnotate(QImage* image,
                            int x0, int y0,
                            double scale_x, double scale_y);
+    void qvivKeyEvent (QKeyEvent *event);
     void qvivMouseMoveEvent (QMouseEvent *event);
     void qvivLeaveEvent (QEvent *event);
 

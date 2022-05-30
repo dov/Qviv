@@ -68,7 +68,7 @@ namespace agg
             *x = m_vertices[m_vertex];
             *y = m_vertices[m_vertex + 1];
             m_vertex += 2;
-            return (m_vertex == 2) ? unsigned(path_cmd_move_to) : unsigned(m_cmd);
+            return (int(m_vertex) == 2) ? int(path_cmd_move_to) : int(m_cmd);
         }
 
         // Supplemantary functions. num_vertices() actually returns doubled 

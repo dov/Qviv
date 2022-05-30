@@ -150,8 +150,8 @@ void QvivImageViewer::paintEvent(QPaintEvent *evt)
     // Constraint by using the pixel replication below
     int exp_x1 = exp_x0 + w;
     int exp_y1 = exp_y0 + h;
-    int offs_x = -d->current_x0-exp_x0;
-    int offs_y = -d->current_y0-exp_y0;
+    double offs_x = -d->current_x0-exp_x0;
+    double offs_y = -d->current_y0-exp_y0;
     double trans_offs_x = offs_x;
     double trans_offs_y = offs_y;
     int dst_x = exp_x0;
@@ -554,16 +554,17 @@ void QvivImageViewer::mousePressEvent (QMouseEvent *event)
 {
     int x = event->x();
     int y = event->y();
+    bool isControlPressed = (event->modifiers() & Qt::ControlModifier)!=0;
 
     DBG(printf("button=%d\n",event->button()));
-    if (event->button() == 1)
+    if (event->button() == 1 && isControlPressed)
         this->zoom_in((int)x, (int)y, 2);
-    else if (event->button() == 4) {
+    else if ((event->button() == 4) || (event->button()==1 && !isControlPressed)) {
         d->is_mouse_scrolling = true;
         d->last_pan_anchor_x = x;
         d->last_pan_anchor_y = y;
     }
-    else if (event->button() == 2)
+    else if (event->button() == 2 && isControlPressed)
         this->zoom_out((int)x, (int)y, 2);
 
 }
@@ -573,7 +574,7 @@ void QvivImageViewer::mouseReleaseEvent (QMouseEvent *event)
     int x = event->x();
     int y = event->y();
 
-    if (event->button() == 4
+    if ((event->button() == 4 || event->button()==1)
         && d->is_mouse_scrolling) {
         d->is_mouse_scrolling = false;
 
@@ -634,7 +635,6 @@ QvivImageViewer::Priv::view_changed(int do_force,
                                     double x0,
                                     double y0)
 {
-  QRect expose_rect;
   int render_width, render_height;
 
   DBG2(g_print("force sx sy x0 y0 = %d %f %f %f %f\n",
@@ -723,16 +723,16 @@ QvivImageViewer::Priv::view_changed(int do_force,
     DBG2(g_print("Filling in: dx dy = %d %d\n", dx, dy));
     /* And fill in the new areas */
     if (dx) {
-      double x = (dx < 0) ? 0 : widget->viewport()->size().width() - dx;
-      double width = fabs(dx);
-      double height = widget->viewport()->size().height();
+      int x = (dx < 0) ? 0 : widget->viewport()->size().width() - dx;
+      int width = abs(round(dx));
+      int height = widget->viewport()->size().height();
 
       widget->viewport()->update(x,0,width,height);
     }
     if (dy) {
-      double y = (dy < 0) ? 0 : widget->viewport()->size().height() - dy;
-      double width = widget->viewport()->size().width();
-      double height = fabs(dy);
+      int y = (dy < 0) ? 0 : widget->viewport()->size().height() - dy;
+      int width = widget->viewport()->size().width();
+      int height = abs(round(dy));
           
       widget->viewport()->update(0,y,width,height);
     }
@@ -1065,6 +1065,9 @@ void QvivImageViewer::wheelEvent (QWheelEvent *event)
 
 void QvivImageViewer::keyPressEvent (QKeyEvent * event)
 {
+    // Do all signals need to be proxied?
+    emit qvivKeyEvent(event);
+
     QString k = event->text();
 
     if (k=="=" || k=="+")
@@ -1098,12 +1101,14 @@ void QvivImageViewer::scrollContentsBy (int /*dx*/, int /*dy*/)
         x0 = d->scroll_min_x*d->current_scale_x;
         y0 = d->scroll_min_y*d->current_scale_y;
     }
+    double hx = horizontalScrollBar()->value();
+    double vy = verticalScrollBar()->value();
       
     d->view_changed(false,
                     d->current_scale_x,
                     d->current_scale_y,
-                    horizontalScrollBar()->value()+x0,
-                    verticalScrollBar()->value()+y0);
+                    hx+x0,
+                    vy+y0);
 }
 
 void QvivImageViewer::imageAnnotate(QImage* image,
@@ -1188,7 +1193,7 @@ void QvivImageViewer::get_scale_and_shift(double &scale_x,
 
 void QvivImageViewer::redraw(void)
 {
-    d->view_changed(true,
+  d->view_changed(true,
                     d->current_scale_x,
                     d->current_scale_y,
                     d->current_x0,

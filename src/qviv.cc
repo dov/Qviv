@@ -61,7 +61,7 @@ MyApp::MyApp(int argc, char *argv[])
 
     // Assume a single image.
     QImage Image;
-    QvivData *Data = new QvivData;
+    auto Data = make_shared<QvivData>();
     QString RelPath;
     if (argp < my_argc) {
         QString Filename = arguments().at(argp++);
@@ -91,7 +91,7 @@ MyApp::MyApp(int argc, char *argv[])
           Stream.close();
           
           Parser.parse_string(SvgString.c_str());
-          QvivDataSet DataSet(svg);
+          auto DataSet = make_shared<QvivDataSet>(svg);
           Data->data_sets.push_back(DataSet);
         }
         else if (Filename.right(4) == ".giv") {

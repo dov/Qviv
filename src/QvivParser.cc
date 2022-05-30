@@ -189,69 +189,69 @@ void ParseFile(const QString& FileName,
     ifstream is((const char*)FileName.toUtf8());
     string line;
     CBoundaries Boundaries;
-    QvivDataSet DataSet;
+    auto DataSet = make_shared<QvivDataSet>();
 
     while (getline(is,line)) {
         Boundaries.ParseBoundaries(line);
         
         if (Boundaries.size() == 0) {
-            if (DataSet.points.size()) {
+            if (DataSet->points.size()) {
                 Data.data_sets.push_back(DataSet);
-                DataSet.clear();
+                DataSet->clear();
             }
             continue;
         }
 
         if (line[0]=='$') {
           if (Boundaries.CheckMatch(0,"$marks")) {            
-              DataSet.mark_type = ParseMarks(Boundaries,1);
-              DataSet.do_draw_marks = true;
+              DataSet->mark_type = ParseMarks(Boundaries,1);
+              DataSet->do_draw_marks = true;
               continue;
           }
           if (Boundaries.CheckMatch(0,"$arrow")) {            
-              DataSet.arrow_type = ParseArrow(Boundaries,1);
+              DataSet->arrow_type = ParseArrow(Boundaries,1);
               continue;
           }
           if (Boundaries.CheckMatch(0,"$noline")) {            
-              DataSet.do_draw_lines = false;
+              DataSet->do_draw_lines = false;
               continue;
           }
           if (Boundaries.CheckMatch(0,"$color")) {            
-              DataSet.color= ParseColor(Boundaries,1);
+              DataSet->color= ParseColor(Boundaries,1);
               continue;
           }
           if (Boundaries.CheckMatch(0,"$outline_color")) {            
-              DataSet.outline_color= ParseColor(Boundaries,1);
+              DataSet->outline_color= ParseColor(Boundaries,1);
               continue;
           }
           if (Boundaries.CheckMatch(0,"$qviver_color")) {
-              DataSet.quiver_color= ParseColor(Boundaries,1);
+              DataSet->quiver_color= ParseColor(Boundaries,1);
               continue;
           }
           if (Boundaries.CheckMatch(0,"$polygon")) {            
-              DataSet.do_draw_polygon = true;
+              DataSet->do_draw_polygon = true;
               continue;
           }
           if (Boundaries.CheckMatch(0,"$lw")) {            
-              DataSet.line_width = Boundaries.GetFloat(1);
+              DataSet->line_width = Boundaries.GetFloat(1);
               continue;
           }
           if (Boundaries.CheckMatch(0,"$mark_size")) {            
-              DataSet.mark_size = Boundaries.GetFloat(1);
+              DataSet->mark_size = Boundaries.GetFloat(1);
               continue;
           }
           if (Boundaries.CheckMatch(0,"$scale_marks")) {
               if (Boundaries.size()==1)
-                  DataSet.do_scale_marks = 1;
+                  DataSet->do_scale_marks = 1;
               else
-                  DataSet.do_scale_marks = Boundaries.GetInt(1);
+                  DataSet->do_scale_marks = Boundaries.GetInt(1);
               continue;
           }
           if (Boundaries.CheckMatch(0,"$scale_fonts")) {
               if (Boundaries.size()==1)
-                  DataSet.do_scale_fonts = 1;
+                  DataSet->do_scale_fonts = 1;
               else
-                  DataSet.do_scale_fonts = Boundaries.GetInt(1);
+                  DataSet->do_scale_fonts = Boundaries.GetInt(1);
               continue;
           }
 
@@ -266,17 +266,17 @@ void ParseFile(const QString& FileName,
         }
 
         if (Boundaries.CheckMatch(0,"m")) {
-            DataSet.add_point(OP_MOVE,
+            DataSet->add_point(OP_MOVE,
                               Boundaries.GetFloat(1),
                               Boundaries.GetFloat(2));
         }
         // Handle text and errors, etc.
         else
-            DataSet.add_point(OP_DRAW,
+            DataSet->add_point(OP_DRAW,
                               Boundaries.GetFloat(0),
                               Boundaries.GetFloat(1));
     }
-    if (DataSet.points.size()) 
+    if (DataSet->points.size()) 
         Data.data_sets.push_back(DataSet);
 }
     

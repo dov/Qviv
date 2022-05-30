@@ -49,7 +49,8 @@ namespace svg
         m_curved_stroked_trans(m_curved_stroked, m_transform),
 
         m_curved_trans(m_curved_count, m_transform),
-        m_curved_trans_contour(m_curved_trans)
+        m_curved_trans_contour(m_curved_trans),
+        m_paint_by_label(false)
     {
         m_curved_trans_contour.auto_detect_orientation(false);
     }
@@ -254,7 +255,11 @@ namespace svg
     void path_renderer::fill(const rgba8& f)
     {
         path_attributes& attr = cur_attr();
-        attr.fill_color = f;
+        if (m_paint_by_label)
+            attr.fill_color = m_label_color;
+        else
+            attr.fill_color = f;
+        
         attr.fill_flag = true;
     }
 
@@ -262,7 +267,10 @@ namespace svg
     void path_renderer::stroke(const rgba8& s)
     {
         path_attributes& attr = cur_attr();
-        attr.stroke_color = s;
+        if (m_paint_by_label)
+          attr.stroke_color = m_label_color;
+        else
+          attr.stroke_color = s;
         attr.stroke_flag = true;
     }
 
@@ -313,13 +321,15 @@ namespace svg
     //------------------------------------------------------------------------
     void path_renderer::fill_opacity(double op)
     {
-        cur_attr().fill_color.opacity(op);
+        if (!m_paint_by_label)
+            cur_attr().fill_color.opacity(op);
     }
     
     //------------------------------------------------------------------------
     void path_renderer::stroke_opacity(double op)
     {
-        cur_attr().stroke_color.opacity(op);
+        if (!m_paint_by_label)
+            cur_attr().stroke_color.opacity(op);
     }
 
     //------------------------------------------------------------------------

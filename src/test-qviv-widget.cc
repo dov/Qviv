@@ -20,6 +20,10 @@
 #include <QRect>
 #include "QvivWidget.h"
 #include "QvivData.h"
+#include <fmt/core.h>
+
+using namespace std;
+using namespace fmt;
 
 class MyApp : public QApplication {
 public:
@@ -64,55 +68,54 @@ MyApp::MyApp(int argc, char *argv[])
                     {187, 176}};
 
     // Add some points
-    QvivData *data = new QvivData;
+    auto data = make_shared<QvivData>();
     int balloonA = data->balloons.add_balloon("Dataset A");
     int balloonB = data->balloons.add_balloon("Dataset B");
     int balloonC = data->balloons.add_balloon("Dataset C");
-    QvivDataSet data_set(QvivColor(0x00ff00ff),10);
+
+    auto data_set = make_shared<QvivDataSet>(QvivColor(0x00ff00ff),10);
 
     for (int i=0; i<5; i++) 
-        data_set.add_point(OP_DRAW, points[i].x,points[i].y,balloonA);
+        data_set->add_point(OP_DRAW, points[i].x,points[i].y,balloonA);
     data->data_sets.push_back(data_set);
     
-    QvivDataSet data_set1(QvivColor(0xff0000ff),5);
+    auto data_set1 = make_shared<QvivDataSet>(QvivColor(0xff0000ff),5);
     for (int i=0; i<5; i++) 
-      data_set1.add_point(OP_MOVE, points[i].x-2,points[i].y,balloonB);
+      data_set1->add_point(OP_MOVE, points[i].x-2,points[i].y,balloonB);
     data->data_sets.push_back(data_set1);
 
-    QvivDataSet data_set2(QvivColor(0xffa500ff),3);
+    auto data_set2 = make_shared<QvivDataSet>(QvivColor(0xffa500ff),3);
     for (int i=0; i<5; i++) 
-      data_set2.add_point(OP_MOVE, points[i].x+2,points[i].y,balloonC);
+      data_set2->add_point(OP_MOVE, points[i].x+2,points[i].y,balloonC);
     data->data_sets.push_back(data_set2);
 
     // Create a large dataset.
-    QvivDataSet data_set_large(QvivColor(0x80606040));
+    auto data_set_large = make_shared<QvivDataSet>(QvivColor(0x80606040));
     int n = 100;
     for (int i=0; i<n*n; i++)
     {
-      QString s;
-      s.sprintf("Dataset A, i=%d",i);
-      int balloon_idx = data->balloons.add_balloon(s.toUtf8());
-      data_set_large.add_point(OP_MOVE, 181+1.0/n*(i%n), 171+1.0/n*(i/n),balloon_idx);
+      int balloon_idx = data->balloons.add_balloon(format("Dataset A, i={}",i).c_str());
+      data_set_large->add_point(OP_MOVE, 181+1.0/n*(i%n), 171+1.0/n*(i/n),balloon_idx);
     }
     data->data_sets.push_back(data_set_large);
 
     // Test text
     int text_id = data->balloons.add_balloon("TopLeft");
-    QvivDataSet text_data_set(QvivColor(0x0000ffff));
-    text_data_set.add_point(OP_TEXT,200,30,text_id);
+    auto text_data_set = make_shared<QvivDataSet>(QvivColor(0x0000ffff));
+    text_data_set->add_point(OP_TEXT,200,30,text_id);
     data->data_sets.push_back(text_data_set);
 
     // Test text Center bottom aligned
     int text_id2 = data->balloons.add_balloon("CenterBottom");
-    QvivDataSet text_data_set2(QvivColor(0x0080ffff));
-    text_data_set2.text_align = 6+1;
-    text_data_set2.font_size_in_points = 5;
-    text_data_set2.add_point(OP_TEXT,200,30,text_id2);
+    auto text_data_set2 = make_shared<QvivDataSet>(QvivColor(0x0080ffff));
+    text_data_set2->text_align = 6+1;
+    text_data_set2->font_size_in_points = 5;
+    text_data_set2->add_point(OP_TEXT,200,30,text_id2);
     data->data_sets.push_back(text_data_set2);
 
     // Draw a dot at the same position for comparison
-    QvivDataSet red_dot(QvivColor(0xff0000ff));
-    red_dot.add_point(OP_MOVE,200,30,0);
+    auto red_dot = make_shared<QvivDataSet>(QvivColor(0xff0000ff));
+    red_dot->add_point(OP_MOVE,200,30,0);
     data->data_sets.push_back(red_dot);
 
     //    painter.drawEllipse(-15,-15,30,30);

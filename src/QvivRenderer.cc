@@ -6,6 +6,10 @@
 //----------------------------------------------------------------------
 #include "QvivRenderer.h"
 #include <math.h>
+#include <fmt/core.h>
+
+using namespace fmt;
+using namespace std;
 
 #define COLOR_NONE 0xfffe 
 
@@ -15,7 +19,7 @@ clip_line_to_rectangle(double x0, double y0, double x1, double y1,
                        /* output */
                        double *cx0, double *cy0, double *cx1, double *cy1);
 
-QvivRenderer::QvivRenderer(QvivData *_data,
+QvivRenderer::QvivRenderer(shared_ptr<QvivData> _data,
                            QvivPainter& _painter,
                            double _scale_x,
                            double _scale_y,
@@ -45,7 +49,7 @@ void QvivRenderer::paint()
       return;
 
     for (int ds_idx=0; ds_idx<(int)data->data_sets.size(); ds_idx++) {
-        QvivDataSet *dataset = &data->data_sets[ds_idx];
+        shared_ptr<QvivDataSet> dataset = data->data_sets[ds_idx];
         if (!dataset->is_visible)
             continue;
 
@@ -71,8 +75,8 @@ void QvivRenderer::paint()
 
         double line_width = dataset->line_width;
         painter.set_line_width(line_width);
-        painter.set_dashes(dataset->num_dashes,
-                           dataset->dashes);
+        painter.set_dashes((int)dataset->dashes.size(),
+                           &dataset->dashes.data()[0]);
         QvivArrowType arrow = dataset->arrow_type;
         painter.set_arrow(arrow & ARROW_TYPE_START,
                           arrow & ARROW_TYPE_END);
@@ -104,16 +108,24 @@ void QvivRenderer::paint()
                 if (i==1 && dataset->do_draw_polygon
                     && !dataset->do_draw_polygon_outline)
                     continue;
+                double first_point_x = -1, first_point_y = -1; // For closepath
                 for (int p_idx=0; p_idx<(int)dataset->points.size(); p_idx++) {
-                    QvivPoint& pt=dataset->points[p_idx];
+                    const QvivPoint& pt=dataset->points[p_idx]; // Shortcut
 
                     double m_x = pt.x * scale_x - shift_x;
                     double m_y = pt.y * scale_y - shift_y;
+
+                    if (p_idx == 0 || pt.op == OP_MOVE)
+                    {
+                        first_point_x = m_x;
+                        first_point_y = m_y;
+                    }
+
                     int balloon_idx = pt.balloon_index;
 
                     if (balloon_idx!=prev_balloon_idx)
                     {
-                    painter.set_set_idx(balloon_idx);
+                      painter.set_set_idx(balloon_idx);
                       prev_balloon_idx = balloon_idx;
                     }
 
@@ -136,7 +148,12 @@ void QvivRenderer::paint()
                         }
                     }
                     else if (i < 2 && pt.op == OP_CLOSEPATH)
-                      painter.close_path();
+                    {
+                        // Should this be clipped as well?
+                        painter.add_line_segment(old_x, old_y, first_point_x, first_point_y,
+                                                 i==0);
+                        painter.close_path();
+                    }
                     else if (pt.op == OP_QUIVER) {
                         double qscale = dataset->quiver_scale;
                         double q_x = old_x + pt.x * scale_x * qscale;

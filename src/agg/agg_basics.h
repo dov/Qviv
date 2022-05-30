@@ -203,7 +203,7 @@ namespace agg
     {
         AGG_INLINE static unsigned mul(unsigned a, unsigned b)
         {
-            register unsigned q = a * b + (1 << (Shift-1));
+            unsigned q = a * b + (1 << (Shift-1));
             return (q + (q >> Shift)) >> Shift;
         }
     };
@@ -416,7 +416,7 @@ namespace agg
     inline bool is_close(unsigned c)
     {
         return (c & ~(path_flags_cw | path_flags_ccw)) ==
-               (path_cmd_end_poly | path_flags_close); 
+          (int(path_cmd_end_poly) | int(path_flags_close)); 
     }
 
     //------------------------------------------------------------is_next_poly

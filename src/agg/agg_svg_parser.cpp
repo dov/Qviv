@@ -227,7 +227,7 @@ namespace svg
     
         end--;
     
-        int32 length = end - begin + 2;
+        int length = int(end - begin + 2);
         char* result = new char[length];
         memcpy(result, begin, length - 1);
         result[length - 1] = 0;
@@ -271,7 +271,10 @@ namespace svg
     void parser::parse(const char* fname)
     {
         char msg[1024];
+        md5_ctxt md5;
         XML_Parser p = XML_ParserCreate(NULL);
+        uint8_t md5_digest[MD5_DIGEST_LENGTH];
+
         if(p == 0) 
         {
             throw exception("Couldn't allocate memory for parser");
@@ -280,7 +283,7 @@ namespace svg
         XML_SetUserData(p, this);
         XML_SetElementHandler(p, start_element, end_element);
         XML_SetCharacterDataHandler(p, content);
-
+        
         FILE* fd = fopen(fname, "r");
         if(fd == 0)
         {
@@ -288,10 +291,12 @@ namespace svg
                     throw exception(msg);
         }
 
+        md5_init(&md5);
         bool done = false;
         do
         {
             size_t len = fread(m_buf, 1, buf_size, fd);
+            md5_loop(&md5, (uint8_t*)m_buf, len);
             done = len < buf_size;
             if(!XML_Parse(p, m_buf, len, done))
             {
@@ -305,6 +310,8 @@ namespace svg
         while(!done);
         fclose(fd);
         XML_ParserFree(p);
+        
+        md5_result(md5_digest, &md5);
 
         char* ts = m_title;
         while(*ts)
@@ -312,11 +319,14 @@ namespace svg
             if(*ts < ' ') *ts = ' ';
             ++ts;
         }
+        m_path.set_checksum(md5_digest);
     }
 
     void parser::parse_string(const char* svg_string)
     {
         char msg[1024];
+        uint8_t md5_digest[MD5_DIGEST_LENGTH];
+        md5_ctxt md5;
         XML_Parser p = XML_ParserCreate(NULL);
         if(p == 0) 
         {
@@ -337,6 +347,11 @@ namespace svg
           throw exception(msg);
         }
         XML_ParserFree(p);
+        md5_init(&md5);
+        md5_loop(&md5, (uint8_t*)svg_string, len);
+
+        md5_result(md5_digest, &md5);
+        m_path.set_checksum(md5_digest);
     }
 
     //------------------------------------------------------------------------

@@ -41,7 +41,7 @@ namespace agg
         enum base_scale_e { base_shift = color_type::base_shift };
 
         static AGG_INLINE void blend_pix(value_type* p, unsigned cv, 
-                                         unsigned alpha, unsigned cover=0)
+                                         unsigned alpha, unsigned /*cover*/=0)
         {
             *p = (value_type)((((cv - calc_type(*p)) * alpha) + (calc_type(*p) << base_shift)) >> base_shift);
         }
@@ -604,7 +604,7 @@ namespace agg
         void blend_from_color(const SrcPixelFormatRenderer& from, 
                               const color_type& color,
                               int xdst, int ydst,
-                              int xsrc, int ysrc,
+                              int /*xsrc*/, int ysrc,
                               unsigned len,
                               int8u cover)
         {
@@ -631,7 +631,7 @@ namespace agg
         void blend_from_lut(const SrcPixelFormatRenderer& from, 
                             const color_type* color_lut,
                             int xdst, int ydst,
-                            int xsrc, int ysrc,
+                            int /*xsrc*/, int ysrc,
                             unsigned len,
                             int8u cover)
         {

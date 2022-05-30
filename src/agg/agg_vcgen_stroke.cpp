@@ -91,6 +91,7 @@ namespace agg
             {
             case initial:
                 rewind(0);
+                // fallthrough
 
             case ready:
                 if(m_src_vertices.size() < 2 + unsigned(m_closed != 0))
@@ -158,6 +159,7 @@ namespace agg
             case close_first:
                 m_status = outline2;
                 cmd = path_cmd_move_to;
+                // fallthrough
 
             case outline2:
                 if(m_src_vertex <= unsigned(m_closed == 0))

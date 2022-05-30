@@ -13,6 +13,7 @@ debug:UI_DIR = debug/.ui
 QMAKE_CXXFLAGS+= -Wno-unused-parameter -Wno-reorder
 INCLUDEPATH += agg
 CONFIG += c++11
+DEFINES += AGG_CUSTOM_ALLOCATOR
 
 HEADERS = QvivImageViewer.h \
           QvivWidget.h \
@@ -66,6 +67,7 @@ SOURCES =  \
     agg/agg_svg_parser.cpp \
     agg/agg_svg_path_renderer.cpp \
     agg/agg_svg_path_tokenizer.cpp \
-    agg/agg_svg_gradient.cpp
+    agg/agg_svg_gradient.cpp \
+    agg/md5.c
 
-LIBS += -lexpat
+LIBS += -lexpat -lfmt

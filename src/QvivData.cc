@@ -10,8 +10,18 @@
 #include <malloc.h>
 #include <string.h>
 #include <limits>
+#include <fmt/core.h>
+
 
 using namespace std;
+using namespace fmt;
+
+QvivDataSet::QvivDataSet(QvivColor _color, double line_width)
+{
+  SetDefaultVals();
+  color = _color;
+  this->line_width = line_width;
+}
 
 QvivDataSet::QvivDataSet(QVariantMap variant)
 {
@@ -24,8 +34,7 @@ QvivDataSet::QvivDataSet(QVariantMap variant)
   if (variant.contains("is_visible"))
       is_visible = variant["is_visible"].toBool();
 
-  num_dashes = 0;
-  dashes = NULL;
+  dashes.clear();
 
   if (variant.contains("do_draw_lines"))
       do_draw_lines = variant["do_draw_lines"].toBool();
@@ -83,47 +92,37 @@ QvivBalloons::~QvivBalloons()
 
 void QvivBalloons::clear(void)
 {
-    for (int i=0; i<(int)balloon_strings.size(); i++)
-        free(balloon_strings[i]);
-    for (int i=0; i<(int)sprites.size(); i++)
-        delete sprites[i];
     balloon_strings.clear();
     sprites.clear();
-    if (resolved_text) {
-        free(resolved_text);
-        resolved_text = NULL;
-    }
 }
 
 int QvivBalloons::add_balloon(const char *balloon_string)
 {
-  balloon_strings.push_back(strdup(balloon_string));
-  return balloon_strings.size()-1;
+    balloon_strings.push_back(balloon_string);
+    return (int)balloon_strings.size()-1;
 }
     
 // Takes over ownership!
-int QvivBalloons::add_sprite(QImage *sprite)
+int QvivBalloons::add_sprite(shared_ptr<QImage> sprite)
 {
   sprites.push_back(sprite);
-  return sprites.size()-1;
+  return (int)sprites.size()-1;
 }
     
 const char *QvivBalloons::get_balloon_text(int balloon_index)
 {
     if (resolver) {
-        if (resolved_text)
-            free(resolved_text);
-        resolved_text = resolver->getString(balloon_index);
-        return resolved_text;
+        this->resolved_text = resolver->getString(balloon_index);
+        return resolved_text.c_str();
     }
   
     if (balloon_index < 0 || balloon_index >= (int)balloon_strings.size())
-        return NULL;
+        return nullptr;
   
-    if (strlen(balloon_strings[balloon_index])==0)
-        return NULL;
+    if (balloon_strings[balloon_index].size()==0)
+        return nullptr;
   
-    return strdup(balloon_strings[balloon_index]);
+    return balloon_strings[balloon_index].c_str();
 }
 
 const QImage *QvivBalloons::get_sprite(int sprite_index)
@@ -131,14 +130,24 @@ const QImage *QvivBalloons::get_sprite(int sprite_index)
   if (sprite_index < 0 || sprite_index >= (int)sprites.size())
       return NULL;
   
-  return sprites[sprite_index];
+  return sprites[sprite_index].get();
 }
 
 
 // Create a dataset from a QVariant
-QvivData::QvivData(QVariant variant)
+QvivData::QvivData()
 {
-    // disabled for now
+}
+
+QvivData::~QvivData(void)
+{
+}  
+
+QvivData::QvivData(QVariant /*variant*/)
+{
+#if 0
+
+  // disabled for now
   if (variant.type() != QVariant::Map)
       return;
 
@@ -155,6 +164,7 @@ QvivData::QvivData(QVariant variant)
         for (QVariantList::iterator it=BalloonList.begin(); it!=BalloonList.end(); ++it)
             balloons.add_balloon(it->toString().toUtf8());
       }
+#endif
 }
 
 void QvivData::get_bounds(double& xmin,
@@ -166,9 +176,9 @@ void QvivData::get_bounds(double& xmin,
     xmax = ymax = numeric_limits<double>::min();
 
     for (auto& ds : data_sets) {
-        if (ds.has_svg) {
+        if (ds->has_svg) {
             double mx,my,Mx,My;
-            ds.svg.bounding_rect(&mx,&my,&Mx,&My);
+            ds->svg.bounding_rect(&mx,&my,&Mx,&My);
             
             if (mx < xmin)
                 xmin = mx;
@@ -180,7 +190,7 @@ void QvivData::get_bounds(double& xmin,
                 ymax = My;
         }
 
-        for (auto& p : ds.points) {
+        for (auto& p : ds->points) {
             if (p.x < xmin)
                 xmin = p.x;
             if (p.x > xmax)

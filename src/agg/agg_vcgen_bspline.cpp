@@ -132,6 +132,7 @@ namespace agg
             {
             case initial:
                 rewind(0);
+                // fallthrough
 
             case ready:
                 if(m_src_vertices.size() < 2)
@@ -154,6 +155,7 @@ namespace agg
                 cmd = path_cmd_move_to;
                 m_status = polygon;
                 m_src_vertex = 0;
+                // fallthrough
 
             case polygon:
                 if(m_cur_abscissa >= m_max_abscissa)

@@ -51,9 +51,13 @@
 #include "agg_span_allocator.h"
 #include "agg_span_interpolator_linear.h"
 #include "agg_rounded_rect.h"
+#include "md5.h"
+
 
 namespace agg
 {
+const double SVG_MM_TO_POINT = 2.834645651435303;
+
 namespace svg
 {
     inline rgba8 modify_color(const rgba8& color, double gain, double offset)
@@ -157,6 +161,13 @@ namespace svg
            sprintf(fill_url, "%s", attr.fill_url);
         }
 
+        // assignment operator (shut up warnings)
+        path_attributes& operator=(const path_attributes& attr) 
+        {
+            memcpy((void*)this,(void*)&attr,sizeof(path_attributes));
+            return *this;
+        }
+
         // Copy constructor with new index value
         path_attributes(const path_attributes& attr, unsigned idx) :
             index(idx),
@@ -213,10 +224,12 @@ namespace svg
           m_curved_stroked_trans(m_curved_stroked, m_transform),
   
           m_curved_trans(m_curved_count, m_transform),
-          m_curved_trans_contour(m_curved_trans)
+          m_curved_trans_contour(m_curved_trans),
+          m_paint_by_label(other.m_paint_by_label)
         {
           for (size_t i=0; i<other.m_gradients.size(); i++)
                 m_gradients.push_back(other.m_gradients[i]->clone());
+          memcpy(m_checksum_digest, other.m_checksum_digest, MD5_DIGEST_LENGTH);
         }
 
         const path_renderer& operator=(const path_renderer& other)
@@ -228,6 +241,7 @@ namespace svg
             m_user_transform = other.m_user_transform;
             for (size_t i=0; i<other.m_gradients.size(); i++)
                 m_gradients.push_back(other.m_gradients[i]->clone());
+            m_paint_by_label = other.m_paint_by_label;
 
             return *this;
         }
@@ -462,18 +476,27 @@ namespace svg
 
                     if(attr.fill_url[0] != 0)
                     {
-                        render_gradient(ras,sl,rb,attr.fill_url,attr.opacity);
+                        if (m_paint_by_label)
+                          agg::render_scanlines_bin_solid(ras, sl, rb, m_label_color);
+                        else
+                          render_gradient(ras,sl,rb,attr.fill_url,attr.opacity);
                     }
                     else
                     {
-                        if (color_multiplier != 1.0)
-                          color = modify_color(attr.fill_color, color_multiplier, color_offset);
-                        else
-                          color = attr.fill_color;
-
-                        color.opacity(color.opacity() * opacity*attr.opacity);
-                        ren.color(color);
-                        agg::render_scanlines(ras, sl, ren);
+                        if (m_paint_by_label) {
+                            agg::render_scanlines_bin_solid(ras, sl, rb, m_label_color);
+                        }
+                        else {
+                            if (color_multiplier != 1.0)
+                              color = modify_color(attr.fill_color, color_multiplier, color_offset);
+                            else
+                              color = attr.fill_color;
+    
+                            color.opacity(color.opacity() * opacity*attr.opacity);
+    
+                            ren.color(color);
+                            agg::render_scanlines(ras, sl, ren);
+                        }
                     }
                 }
 
@@ -499,18 +522,26 @@ namespace svg
                     ras.add_path(m_curved_stroked_trans, attr.index);
                     if(attr.stroke_url[0] != 0)
                     {
-                        render_gradient(ras,sl,rb,attr.stroke_url,attr.opacity);
+                        if (m_paint_by_label) 
+                            agg::render_scanlines_bin_solid(ras, sl, rb, m_label_color);
+                        else
+                          render_gradient(ras,sl,rb,attr.stroke_url,attr.opacity);
                     }
                     else
                     {
-                        if (color_multiplier != 1.0)
-                            color = modify_color(attr.stroke_color, color_multiplier, color_offset);
-                        else
+                        if (m_paint_by_label) {
+                            agg::render_scanlines_bin_solid(ras, sl, rb, m_label_color);
+                        }
+                        else {
+                            if (color_multiplier != 1.0)
+                                color = modify_color(attr.stroke_color, color_multiplier, color_offset);
+                            else
+                                color = attr.stroke_color;
                             color = attr.stroke_color;
-                        color = attr.stroke_color;
-                        color.opacity(color.opacity() * opacity * attr.opacity);
-                        ren.color(color);
-                        agg::render_scanlines(ras, sl, ren);
+                            color.opacity(color.opacity() * opacity * attr.opacity);
+                            ren.color(color);
+                            agg::render_scanlines(ras, sl, ren);
+                        }
                     }
                 }
             }
@@ -544,6 +575,32 @@ namespace svg
         void start_gradient(bool radial = false);
         void end_gradient();
         gradient* current_gradient() const { return m_cur_gradient; }
+
+        double width_in_mm() const { return m_width_in_mm; }
+        double height_in_mm() const { return m_height_in_mm; }
+        double width_in_pt() const { return m_width_in_mm*SVG_MM_TO_POINT; }
+        double height_in_pt() const { return m_height_in_mm*SVG_MM_TO_POINT; }
+        void set_width_in_mm(double width_in_mm) { m_width_in_mm = width_in_mm; }
+        void set_height_in_mm(double height_in_mm) { m_height_in_mm = height_in_mm; }
+        void set_label_color(rgba label_color)
+        {
+          m_paint_by_label = true;
+          m_label_color = label_color;
+        }
+        void set_paint_by_label(bool paint_by_label)
+        {
+          m_paint_by_label = paint_by_label;
+        }
+        
+        friend bool operator== ( const path_renderer& lhs,
+                                 const path_renderer& rhs ) {
+            return memcmp(lhs.m_checksum_digest, rhs.m_checksum_digest, MD5_DIGEST_LENGTH)==0;
+        }
+
+        void set_checksum(uint8_t md5_digest[16]) {
+            memcpy(m_checksum_digest, md5_digest, MD5_DIGEST_LENGTH);
+        }
+
     private:
         void	add_gradient(gradient* gradient);
         gradient*	gradient_at(int32 index) const;
@@ -555,8 +612,10 @@ namespace svg
         attr_storage   m_attr_stack;
         trans_affine   m_transform;
         trans_affine   m_user_transform;
+        double         m_width_in_mm, m_height_in_mm;
         std::vector<gradient*> m_gradients;
         gradient*	m_cur_gradient;
+        uint8_t        m_checksum_digest[MD5_DIGEST_LENGTH] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
         curved                       m_curved;
         curved_count                 m_curved_count;
@@ -566,6 +625,8 @@ namespace svg
 
         curved_trans                 m_curved_trans;
         curved_trans_contour         m_curved_trans_contour;
+        bool m_paint_by_label = false;
+        rgba m_label_color;
     };
 
 }

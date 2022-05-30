@@ -6,6 +6,7 @@
 #include <QVariant>
 #include <QColor>
 #include <vector>
+#include <memory>
 #include "QvivColor.h"
 
 enum QvivOp
@@ -67,29 +68,28 @@ class QvivPoint
 class QvivBalloons
 {
   private:
-    std::vector<char*> balloon_strings;
-    std::vector<QImage*> sprites;
-    BalloonIndexToStringResolver *resolver;
-    char *resolved_text;
+    std::vector<std::string> balloon_strings;
+    std::vector<std::shared_ptr<QImage>> sprites;
+    std::shared_ptr<BalloonIndexToStringResolver> resolver;
+    std::string resolved_text;
 
   public:
     QvivBalloons(BalloonIndexToStringResolver *_resolver=NULL)
-      : resolver(_resolver),
-        resolved_text(NULL) {}
+      : resolver(_resolver) {}
     ~QvivBalloons();
     int add_balloon(const char *balloon_string);
-    int add_sprite(QImage *sprite);
+    int add_sprite(std::shared_ptr<QImage> sprite);
     void clear(void);
-    size_t get_num_ballons(void) {
-        return balloon_strings.size();
+    int get_num_ballons(void) {
+        return (int)balloon_strings.size();
     }
-    size_t get_num_sprites(void) {
-        return sprites.size();
+    int get_num_sprites(void) {
+        return (int)sprites.size();
     }
     const char *get_balloon_text(int balloon_index);
     const QImage *get_sprite(int sprite_index);
 
-    void setResolver(BalloonIndexToStringResolver *_resolver=NULL)
+    void setResolver(std::shared_ptr<BalloonIndexToStringResolver> _resolver)
     {
         resolver = _resolver;
     }
@@ -103,8 +103,7 @@ class QvivDataSet
         color = 0xff0000ff;
         line_width = 1;
         is_visible = true;
-        num_dashes = 0;
-        dashes = NULL;
+        dashes.clear();
         do_draw_lines = true;
         do_draw_marks = false;
         do_draw_polygon = false;
@@ -123,14 +122,13 @@ class QvivDataSet
 
   public:
     QvivDataSet(QvivColor _color=QvivColor(0xff0000ff),
-                double line_width=1.0)
-    {
-        SetDefaultVals();
-        color = _color;
-        this->line_width = line_width;
-    }
+                double line_width=1.0);
     QvivDataSet(QVariantMap variant);
     QvivDataSet(const agg::svg::path_renderer& svg);
+
+    // Use default copy constructor
+    // QvivDataSet(const QvivDataSet &other);
+    
 
     void clear()
     {
@@ -149,8 +147,7 @@ class QvivDataSet
     bool scale_marks;
     std::vector<QvivPoint> points;
     bool is_visible;
-    int num_dashes;
-    double *dashes;
+    std::vector<double> dashes;
     bool do_draw_lines;
     bool do_draw_marks;
     bool do_draw_polygon;
@@ -163,6 +160,7 @@ class QvivDataSet
     double font_size_in_points;
     double do_scale_fonts;
     QString balloon_text;
+    QString path;  // visibility path
     agg::svg::path_renderer svg;  // svg path
     bool has_svg { false };
 
@@ -175,10 +173,11 @@ class QvivDataSet
 class QvivData
 {
   public:
-    QvivData(void) {}
+    QvivData(void);
     QvivData(QVariant Variant);
+    ~QvivData(void);
 
-    std::vector<QvivDataSet> data_sets;
+    std::vector<std::shared_ptr<QvivDataSet>> data_sets;
     std::vector<QString> images;  // Reference to external files
     QvivBalloons balloons;
   

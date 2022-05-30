@@ -13,8 +13,8 @@ class QvivWidget : public QvivImageViewer {
 public:
     QvivWidget(QWidget *parent,
                QImage image );
-    ~QvivWidget();
-    void set_qviv_data(QvivData *qviv_data);
+    virtual ~QvivWidget();
+    void set_qviv_data(std::shared_ptr<QvivData> qviv_data);
 
     // Let the user pick a point with the mouse and returns the chosen
     // point. Returns 0 if a point was chosen with the mouse. Returns
@@ -33,13 +33,13 @@ public:
     bool is_measuring(void);
       
 protected:
-    void keyPressEvent (QKeyEvent * event);
-    void mousePressEvent (QMouseEvent * event);
-    void mouseReleaseEvent (QMouseEvent * event);
-    void imageAnnotate(QImage*, int, int, double, double);
-    void mouseMoveEvent (QMouseEvent *event);
-    void leaveEvent(QEvent *event);
-    void resizeEvent(QResizeEvent *event);
+    void keyPressEvent (QKeyEvent * event) override;
+    void mousePressEvent (QMouseEvent * event) override;
+    void mouseReleaseEvent (QMouseEvent * event) override;
+    void imageAnnotate(QImage*, int, int, double, double) override;
+    void mouseMoveEvent (QMouseEvent *event) override;
+    void leaveEvent(QEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
 
 signals:
     void qvivOverlayChanged(bool view_overlay);

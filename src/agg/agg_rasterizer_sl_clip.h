@@ -35,7 +35,7 @@ namespace agg
         }
         static int xi(int v) { return v; }
         static int yi(int v) { return v; }
-        static int upscale(double v) { return iround(v * poly_subpixel_scale); }
+        static int upscale(double v) { return iround(v * int(poly_subpixel_scale)); }
         static int downscale(int v)  { return v; }
     };
 
@@ -51,7 +51,7 @@ namespace agg
         static int yi(int v) { return v; }
         static int upscale(double v) 
         { 
-            return saturation<poly_max_coord>::iround(v * poly_subpixel_scale); 
+            return saturation<poly_max_coord>::iround(v * int(poly_subpixel_scale)); 
         }
         static int downscale(int v) { return v; }
     };
@@ -66,7 +66,7 @@ namespace agg
         }
         static int xi(int v) { return v * 3; }
         static int yi(int v) { return v; }
-        static int upscale(double v) { return iround(v * poly_subpixel_scale); }
+        static int upscale(double v) { return iround(v * int(poly_subpixel_scale)); }
         static int downscale(int v)  { return v; }
     };
 
@@ -78,8 +78,8 @@ namespace agg
         {
             return a * b / c;
         }
-        static int xi(double v) { return iround(v * poly_subpixel_scale); }
-        static int yi(double v) { return iround(v * poly_subpixel_scale); }
+        static int xi(double v) { return iround(v * int(poly_subpixel_scale)); }
+        static int yi(double v) { return iround(v * int(poly_subpixel_scale)); }
         static double upscale(double v) { return v; }
         static double downscale(int v)  { return v / double(poly_subpixel_scale); }
     };
@@ -92,8 +92,8 @@ namespace agg
         {
             return a * b / c;
         }
-        static int xi(double v) { return iround(v * poly_subpixel_scale * 3); }
-        static int yi(double v) { return iround(v * poly_subpixel_scale); }
+        static int xi(double v) { return iround(v * int(poly_subpixel_scale) * 3); }
+        static int yi(double v) { return iround(v * int(poly_subpixel_scale)); }
         static double upscale(double v) { return v; }
         static double downscale(int v)  { return v / double(poly_subpixel_scale); }
     };
@@ -317,7 +317,7 @@ namespace agg
         rasterizer_sl_no_clip() : m_x1(0), m_y1(0) {}
 
         void reset_clipping() {}
-        void clip_box(coord_type x1, coord_type y1, coord_type x2, coord_type y2) {}
+        void clip_box(coord_type , coord_type, coord_type, coord_type) {}
         void move_to(coord_type x1, coord_type y1) { m_x1 = x1; m_y1 = y1; }
 
         template<class Rasterizer>

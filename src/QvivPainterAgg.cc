@@ -32,16 +32,10 @@
 #include "agg/agg_pixfmt_gray.h"
 #include "agg/agg_svg_parser.h"
 #include "agg/agg_blur.h"
+#include "agg/agg_allocator.h"
 #include "math.h"
 
 using namespace std;
-
-// Define NAN which isn't defined by Visual Studio
-#ifdef _MSC_VER
-#include <float.h>
-#define INFINITY (DBL_MAX+DBL_MAX)
-#define NAN (INFINITY-INFINITY)
-#endif
 
 class QvivPainterAgg::Priv {
 public:
@@ -218,6 +212,8 @@ int QvivPainterAgg::add_mark(QvivMarkType mark_type,
                             double mark_size_x, double mark_size_y,
                             double x, double y)
 {
+  try
+  {
     double rx=mark_size_x/2, ry=mark_size_y/2; // Mark size
     if (mark_type == MARK_TYPE_CIRCLE) {
         agg::ellipse ell;
@@ -249,6 +245,15 @@ int QvivPainterAgg::add_mark(QvivMarkType mark_type,
         d->pf.line_to_d(x-rx, y+ry);
         d->pf.line_to_d(x-rx, y-ry);
     }
+  }
+  catch (EAggOutOfMemory)
+  {
+    //TODO: do something smart here
+  }
+  catch (...)
+  {
+    //TODO: do something smart here
+  }
 
     return 0;
 }
@@ -348,11 +353,23 @@ void QvivPainterAgg::fill()
                          agg::clipper_non_zero,
                          agg::clipper_non_zero);
     
-    d->pf.add_path(clipped);
-    if (d->do_antialiased)
+    try
+    {
+      d->pf.add_path(clipped);
+      if (d->do_antialiased)
         agg::render_scanlines_aa_solid(d->pf, d->sl, d->rbase, color);
-    else
+      else
         agg::render_scanlines_bin_solid(d->pf, d->sl, d->rbase, color);
+    }
+    catch (EAggOutOfMemory)
+    {
+      //TODO: do something smart here
+    }
+    catch (...)
+    {
+      //TODO: do something smart here
+    }
+
     d->pf.reset();
     d->path.remove_all();
     d->old_x = d->old_y = NAN;
@@ -386,26 +403,37 @@ void QvivPainterAgg::stroke()
         color = agg::rgba(d->blue,d->green,d->red,d->alpha);
     }
     
-    if (d->do_dash) {
-        d->pf.add_path(d->stroke_dash);
-    }
-    else {
-        d->pf.add_path(d->cstroke);
-    }
-    if (d->do_start_arrow||d->do_end_arrow) {
-        agg::vcgen_markers_term *m;
+    try
+    {
+      if (d->do_dash) {
+          d->pf.add_path(d->stroke_dash);
+      }
+      else {
+          d->pf.add_path(d->cstroke);
+      }
+      if (d->do_start_arrow||d->do_end_arrow) {
+          agg::vcgen_markers_term *m;
 
-        if (d->do_dash)
-            m = &d->dash.markers();
-        else
-            m = &d->cstroke.markers();
-        agg::conv_marker<agg::vcgen_markers_term, givagg::arrowhead> arrow(*m, d->arrowhead);
-        d->pf.add_path(arrow);
+          if (d->do_dash)
+              m = &d->dash.markers();
+          else
+              m = &d->cstroke.markers();
+          agg::conv_marker<agg::vcgen_markers_term, givagg::arrowhead> arrow(*m, d->arrowhead);
+          d->pf.add_path(arrow);
+      }
+      if (d->do_antialiased)
+          agg::render_scanlines_aa_solid(d->pf, d->sl, d->rbase, color);
+      else
+          agg::render_scanlines_bin_solid(d->pf, d->sl, d->rbase, color);
     }
-    if (d->do_antialiased)
-        agg::render_scanlines_aa_solid(d->pf, d->sl, d->rbase, color);
-    else
-        agg::render_scanlines_bin_solid(d->pf, d->sl, d->rbase, color);
+    catch (EAggOutOfMemory)
+    {
+      //TODO: do something smart here
+    }
+    catch (...)
+    {
+      //TODO: do something smart here
+    }
     d->pf.reset();
     d->path.remove_all();
     d->old_x = NAN;
@@ -495,10 +523,17 @@ void QvivPainterAgg::render_svg_path(agg::svg::path_renderer*svg,
   agg::trans_affine AggTransform(scalex,0,0,scaley,mx,my); 
   typedef agg::pixfmt_rgba32 pixfmt;
   typedef agg::renderer_base<pixfmt> renderer_base;
+  typedef agg::renderer_scanline_aa_solid<renderer_base> renderer_solid;
+  renderer_solid ren(d->rbase);
+
+  if (d->do_paint_by_index) 
+    return; // Don't paint labels for svg until we can do it by them by their label.
 
   // Render the svg in the buffer.
   svg->render(d->pf, d->sl, d->rbase,
               AggTransform,
               d->rbase.clip_box()
               );
+  d->pf.reset();
+  d->pf.filling_rule(agg::fill_non_zero);
 }

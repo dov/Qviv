@@ -6,7 +6,7 @@
 
 class QvivRenderer {
  public:
-    QvivRenderer(QvivData *data,
+    QvivRenderer(std::shared_ptr<QvivData> data,
                  QvivPainter& painter,
                  double _scale_x,
                  double _scale_y,
@@ -22,7 +22,7 @@ class QvivRenderer {
     }
 
  private:
-    QvivData *data;
+    std::shared_ptr<QvivData> data; 
     QvivPainter& painter;
     double scale_x;
     double scale_y;

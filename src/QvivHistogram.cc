@@ -7,7 +7,9 @@
 
 #include <QPainter>
 #include <QPaintEvent>
+#include <QPainterPath>
 #include "QvivHistogram.h"
+#include <QPainterPath>
 #include <vector>
 
 using namespace std;

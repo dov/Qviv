@@ -35,6 +35,8 @@ namespace svg
 
         ~parser();
         parser(path_renderer& path);
+        parser(const parser&) = delete;
+        parser & operator=(const parser&) = delete;
 
         void parse(const char* fname);
         void parse_string(const char* svg_string);

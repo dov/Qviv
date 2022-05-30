@@ -148,6 +148,7 @@ namespace agg
             {
             case initial:
                 rewind(0);
+                // fallthrough
 
             case ready:
                 if(m_num_dashes < 2 || m_src_vertices.size() < 2)
