@@ -37,6 +37,9 @@
 #include "agg_svg_parser.h"
 #include "expat.h"
 #include "agg_svg_gradient.h"
+#include "fmt/core.h"
+
+using namespace fmt;
 
 namespace agg
 {
@@ -227,7 +230,7 @@ namespace svg
     
         end--;
     
-        int length = int(end - begin + 2);
+        int32 length = end - begin + 2;
         char* result = new char[length];
         memcpy(result, begin, length - 1);
         result[length - 1] = 0;
@@ -272,7 +275,7 @@ namespace svg
     {
         char msg[1024];
         md5_ctxt md5;
-        XML_Parser p = XML_ParserCreate(NULL);
+        XML_Parser p = XML_ParserCreate("UTF-8");
         uint8_t md5_digest[MD5_DIGEST_LENGTH];
 
         if(p == 0) 
@@ -502,9 +505,15 @@ namespace svg
         for(i = 0; attr[i]; i += 2)
         {
             if (strcmp(attr[i], "width")==0)
+            {
                 m_width_in_mm = parse_distance_to_mm(attr[i+1]);;
+                m_path.set_width_in_mm(m_width_in_mm);
+            }
             if (strcmp(attr[i], "height")==0)
+            {
                 m_height_in_mm = parse_distance_to_mm(attr[i+1]);;
+                m_path.set_height_in_mm(m_height_in_mm);
+            }
             if (strcmp(attr[i], "viewBox")==0)
                 parse_view_box(attr[i+1], m_view_box);
         }
@@ -607,6 +616,10 @@ namespace svg
             {
                 m_tokenizer.set_path_str(attr[i + 1]);
                 m_path.parse_path(m_tokenizer);
+            }
+            else if(strcmp(attr[i], "title") == 0) {
+              // How to inherit from a group element?
+              m_path.set_balloon(attr[i+1]);
             }
             else
             {
@@ -810,15 +823,21 @@ namespace svg
         } 
         else
         if (strcmp(name, "stop-opacity") == 0) {
-          m_gradient_stop_color.opacity(parse_double(value));
+            m_gradient_stop_color.opacity(parse_double(value));
         }
         else
-        if (strncmp(value, "url", 3) == 0) 
+        if (strncmp(name, "url", 3) == 0) 
         {
-          char* url = parse_url(value);
-          m_path.fill_url(url);
-          delete[] url;
+            char* url = parse_url(value);
+            m_path.fill_url(url);
+            delete[] url;
         } 
+        else
+        if(strcmp(name, "title") == 0) {
+            // How to inherit from a group element?
+            m_path.set_balloon(value);
+        }
+
         //else
         //if(strcmp(el, "<OTHER_ATTRIBUTES>") == 0) 
         //{
@@ -937,6 +956,10 @@ namespace svg
                 if(strcmp(attr[i], "height") == 0) h = parse_double(attr[i + 1]);
                 if(strcmp(attr[i], "rx") == 0)     rx = parse_double(attr[i + 1]);
                 if(strcmp(attr[i], "ry") == 0)     ry = parse_double(attr[i + 1]);
+                if(strcmp(attr[i], "title") == 0) {
+                    // How to inherit from a group element?
+                    m_path.set_balloon(attr[i+1]);
+                }
             }
         }
 
@@ -1008,6 +1031,10 @@ namespace svg
                 if(strcmp(attr[i], "cy") == 0)    cy = parse_double(attr[i + 1]);
                 if(strcmp(attr[i], "rx") == 0)    rx = parse_double(attr[i + 1]);
                 if(strcmp(attr[i], "ry") == 0)    ry = parse_double(attr[i + 1]);
+                if(strcmp(attr[i], "title") == 0) {
+                    // How to inherit from a group element?
+                    m_path.set_balloon(attr[i+1]);
+                }
             }
         }
 

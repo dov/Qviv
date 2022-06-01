@@ -526,14 +526,25 @@ void QvivPainterAgg::render_svg_path(agg::svg::path_renderer*svg,
   typedef agg::renderer_scanline_aa_solid<renderer_base> renderer_solid;
   renderer_solid ren(d->rbase);
 
-  if (d->do_paint_by_index) 
-    return; // Don't paint labels for svg until we can do it by them by their label.
+  if (d->do_paint_by_index)
+  {
+    agg::rgba label_color;
+    double rr, gg, bb;
+    label_to_color(d->set_idx,
+                   // output
+                   rr, gg, bb);
+    label_color   = agg::rgba(rr,gg,bb,1);
+    svg->set_label_color(label_color);
+  }
+  else
+    svg->set_paint_by_label(false);
 
   // Render the svg in the buffer.
   svg->render(d->pf, d->sl, d->rbase,
               AggTransform,
               d->rbase.clip_box()
               );
+
   d->pf.reset();
   d->pf.filling_rule(agg::fill_non_zero);
 }

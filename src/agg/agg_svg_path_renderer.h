@@ -122,6 +122,7 @@ namespace svg
  
         char	stroke_url[64];
         char	fill_url[64];
+        int     label_index;
 
         // Empty constructor
         path_attributes() :
@@ -136,7 +137,8 @@ namespace svg
             line_cap(butt_cap),
             miter_limit(4.0),
             stroke_width(1.0),
-            transform()
+            transform(),
+            label_index(-1)
         {
            stroke_url[0] = 0;
            fill_url[0] = 0;
@@ -155,7 +157,9 @@ namespace svg
             line_cap(attr.line_cap),
             miter_limit(attr.miter_limit),
             stroke_width(attr.stroke_width),
-            transform(attr.transform)
+            transform(attr.transform),
+            label_index(attr.label_index)
+            
         {
            sprintf(stroke_url, "%s", attr.stroke_url);
            sprintf(fill_url, "%s", attr.fill_url);
@@ -180,13 +184,30 @@ namespace svg
             line_cap(attr.line_cap),
             miter_limit(attr.miter_limit),
             stroke_width(attr.stroke_width),
-            transform(attr.transform)
+            transform(attr.transform),
+            label_index(attr.label_index)
         {
            sprintf(stroke_url, "%s", attr.stroke_url);
            sprintf(fill_url, "%s", attr.fill_url);
         }
-    };
 
+        void set_balloon_index(int label_index)
+        {
+           this->label_index = label_index;
+        }
+
+        // Get a color offset by the label offset (base label offset)
+        rgba8 get_label_color(int label_offset) const
+        {
+           // Encode the label as a color
+           int  label = label_offset + this->label_index;
+           uint8_t bb = ((label+1) % 256);
+           uint8_t gg = (((label+1) >> 8) % 256);
+           uint8_t rr = (((label+1) >> 16) % 256);
+
+           return rgba8(rr,gg,bb,255);
+        }
+    };
 
     //============================================================================
     // Path container and renderer. 
@@ -225,11 +246,12 @@ namespace svg
   
           m_curved_trans(m_curved_count, m_transform),
           m_curved_trans_contour(m_curved_trans),
-          m_paint_by_label(other.m_paint_by_label)
+          m_paint_by_label(other.m_paint_by_label),
+          m_balloon_labels(other.m_balloon_labels)
         {
-          for (size_t i=0; i<other.m_gradients.size(); i++)
-                m_gradients.push_back(other.m_gradients[i]->clone());
-          memcpy(m_checksum_digest, other.m_checksum_digest, MD5_DIGEST_LENGTH);
+            for (size_t i=0; i<other.m_gradients.size(); i++)
+                  m_gradients.push_back(other.m_gradients[i]->clone());
+            memcpy(m_checksum_digest, other.m_checksum_digest, MD5_DIGEST_LENGTH);
         }
 
         const path_renderer& operator=(const path_renderer& other)
@@ -339,6 +361,7 @@ namespace svg
         void line_cap(line_cap_e cap);
         void miter_limit(double ml);
         trans_affine& transform();
+        void set_balloon(const char *balloon);
 
         // Make all polygons CCW-oriented
         void arrange_orientations()
@@ -474,17 +497,30 @@ namespace svg
                         ras.add_path(m_curved_trans_contour, attr.index);
                     }
 
-                    if(attr.fill_url[0] != 0)
-                    {
-                        if (m_paint_by_label)
-                          agg::render_scanlines_bin_solid(ras, sl, rb, m_label_color);
+                    if(attr.fill_url[0] != 0) {
+                        if (m_paint_by_label) {
+                            rgba8 label_color;
+
+                            if (attr.label_index>=0)
+                                label_color = attr.get_label_color(this->m_balloon_base_index);
+                            else
+                                label_color = m_label_color;
+
+                            agg::render_scanlines_bin_solid(ras, sl, rb, label_color);
+                        }
                         else
                           render_gradient(ras,sl,rb,attr.fill_url,attr.opacity);
                     }
                     else
                     {
                         if (m_paint_by_label) {
-                            agg::render_scanlines_bin_solid(ras, sl, rb, m_label_color);
+                            rgba8 label_color;
+                            if (attr.label_index>=0)
+                                label_color = attr.get_label_color(this->m_balloon_base_index);
+                            else
+                                label_color = m_label_color;
+
+                            agg::render_scanlines_bin_solid(ras, sl, rb, label_color);
                         }
                         else {
                             if (color_multiplier != 1.0)
@@ -522,15 +558,28 @@ namespace svg
                     ras.add_path(m_curved_stroked_trans, attr.index);
                     if(attr.stroke_url[0] != 0)
                     {
-                        if (m_paint_by_label) 
-                            agg::render_scanlines_bin_solid(ras, sl, rb, m_label_color);
+                        if (m_paint_by_label) {
+                            rgba8 label_color;
+                            if (attr.label_index>=0)
+                                label_color = attr.get_label_color(this->m_balloon_base_index);
+                            else
+                                label_color = m_label_color;
+
+                            agg::render_scanlines_bin_solid(ras, sl, rb, label_color);
+                        }
                         else
                           render_gradient(ras,sl,rb,attr.stroke_url,attr.opacity);
                     }
                     else
                     {
                         if (m_paint_by_label) {
-                            agg::render_scanlines_bin_solid(ras, sl, rb, m_label_color);
+                            rgba8 label_color;
+                            if (attr.label_index>=0)
+                                label_color = attr.get_label_color(this->m_balloon_base_index);
+                            else
+                                label_color = m_label_color;
+
+                            agg::render_scanlines_bin_solid(ras, sl, rb, label_color);
                         }
                         else {
                             if (color_multiplier != 1.0)
@@ -572,6 +621,11 @@ namespace svg
             return m_user_transform;
         }
 
+        const std::vector<std::string>& get_balloon_labels() const
+        {
+            return m_balloon_labels;
+        }
+
         void start_gradient(bool radial = false);
         void end_gradient();
         gradient* current_gradient() const { return m_cur_gradient; }
@@ -584,14 +638,15 @@ namespace svg
         void set_height_in_mm(double height_in_mm) { m_height_in_mm = height_in_mm; }
         void set_label_color(rgba label_color)
         {
-          m_paint_by_label = true;
-          m_label_color = label_color;
+            m_paint_by_label = true;
+            m_label_color = label_color;
         }
+
         void set_paint_by_label(bool paint_by_label)
         {
-          m_paint_by_label = paint_by_label;
+            m_paint_by_label = paint_by_label;
         }
-        
+
         friend bool operator== ( const path_renderer& lhs,
                                  const path_renderer& rhs ) {
             return memcmp(lhs.m_checksum_digest, rhs.m_checksum_digest, MD5_DIGEST_LENGTH)==0;
@@ -599,6 +654,12 @@ namespace svg
 
         void set_checksum(uint8_t md5_digest[16]) {
             memcpy(m_checksum_digest, md5_digest, MD5_DIGEST_LENGTH);
+        }
+
+        // Integer offset used when when drawing labels colors
+        void set_base_label_index(int base_label_index)
+        {
+            m_balloon_base_index = base_label_index;
         }
 
     private:
@@ -627,8 +688,9 @@ namespace svg
         curved_trans_contour         m_curved_trans_contour;
         bool m_paint_by_label = false;
         rgba m_label_color;
+        int m_balloon_base_index = 0;
+        std::vector<std::string> m_balloon_labels;
     };
-
 }
 }
 

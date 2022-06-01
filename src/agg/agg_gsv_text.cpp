@@ -615,6 +615,7 @@ namespace agg
                     break;
                 }
                 m_status = next_char;
+                // fall-thru
 
             case next_char:
                 if(*m_cur_chr == 0) 
@@ -633,12 +634,14 @@ namespace agg
                 m_bglyph = m_glyphs + value(m_indices + idx);
                 m_eglyph = m_glyphs + value(m_indices + idx + 2);
                 m_status = start_glyph;
+                // fall-thru
 
             case start_glyph:
                 *x = m_x;
                 *y = m_y;
                 m_status = glyph;
                 return path_cmd_move_to;
+                // fall-thru
 
             case glyph:
                 if(m_bglyph >= m_eglyph)
