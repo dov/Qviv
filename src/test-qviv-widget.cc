@@ -82,11 +82,13 @@ MyApp::MyApp(int argc, char *argv[])
     auto data_set1 = make_shared<QvivDataSet>(QvivColor(0xff0000ff),5);
     for (int i=0; i<5; i++) 
       data_set1->add_point(OP_MOVE, points[i].x-2,points[i].y,balloonB);
+    data_set1->do_draw_marks=true;
     data->data_sets.push_back(data_set1);
 
     auto data_set2 = make_shared<QvivDataSet>(QvivColor(0xffa500ff),3);
     for (int i=0; i<5; i++) 
       data_set2->add_point(OP_MOVE, points[i].x+2,points[i].y,balloonC);
+    data_set2->do_draw_marks=true;
     data->data_sets.push_back(data_set2);
 
     // Create a large dataset.
@@ -97,6 +99,7 @@ MyApp::MyApp(int argc, char *argv[])
       int balloon_idx = data->balloons.add_balloon(format("Dataset A, i={}",i).c_str());
       data_set_large->add_point(OP_MOVE, 181+1.0/n*(i%n), 171+1.0/n*(i/n),balloon_idx);
     }
+    data_set_large->do_draw_marks=true;
     data->data_sets.push_back(data_set_large);
 
     // Test text

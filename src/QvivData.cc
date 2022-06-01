@@ -96,7 +96,7 @@ void QvivBalloons::clear(void)
     sprites.clear();
 }
 
-int QvivBalloons::add_balloon(const char *balloon_string)
+int QvivBalloons::add_balloon(const std::string& balloon_string)
 {
     balloon_strings.push_back(balloon_string);
     return (int)balloon_strings.size()-1;

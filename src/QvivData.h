@@ -77,7 +77,7 @@ class QvivBalloons
     QvivBalloons(BalloonIndexToStringResolver *_resolver=NULL)
       : resolver(_resolver) {}
     ~QvivBalloons();
-    int add_balloon(const char *balloon_string);
+    int add_balloon(const std::string& balloon_string);
     int add_sprite(std::shared_ptr<QImage> sprite);
     void clear(void);
     int get_num_ballons(void) {
