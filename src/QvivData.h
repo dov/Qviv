@@ -124,7 +124,8 @@ class QvivDataSet
     QvivDataSet(QvivColor _color=QvivColor(0xff0000ff),
                 double line_width=1.0);
     QvivDataSet(QVariantMap variant);
-    QvivDataSet(const agg::svg::path_renderer& svg);
+    QvivDataSet(const agg::svg::path_renderer& svg,
+                const std::string& svg_ballon_string = std::string(""));
 
     // Use default copy constructor
     // QvivDataSet(const QvivDataSet &other);
@@ -191,6 +192,9 @@ class QvivData
                     double& ymin,
                     double& xmax,
                     double& ymax);
+
+    void add_dataset(std::shared_ptr<QvivDataSet> data_set,
+                     const std::string& balloon_string = "");
 };
 
 #endif /* QVIVDATA */

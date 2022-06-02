@@ -16,6 +16,20 @@
 using namespace std;
 using namespace fmt;
 
+static void search_and_replace(std::string& subject,
+                               const std::string& needle,
+                               const std::string& replace)
+{
+    size_t pos = subject.find(needle);
+
+    // Repeat till end is reached
+    while( pos != string::npos)
+    {
+        subject.replace(pos, needle.size(), replace);
+        pos = subject.find(subject, pos + replace.size());
+    }
+}
+
 QvivDataSet::QvivDataSet(QvivColor _color, double line_width)
 {
   SetDefaultVals();
@@ -77,12 +91,14 @@ QvivDataSet::QvivDataSet(QVariantMap variant)
       }
 }
 
-QvivDataSet::QvivDataSet(const agg::svg::path_renderer& svg) :
+QvivDataSet::QvivDataSet(const agg::svg::path_renderer& svg,
+                         const string& svg_ballon_string) :
     svg(svg),
     has_svg(true)
 {
     SetDefaultVals();
     has_svg = true;
+
 }
 
 QvivBalloons::~QvivBalloons()
@@ -204,3 +220,22 @@ void QvivData::get_bounds(double& xmin,
 
 }
 
+void QvivData::add_dataset(shared_ptr<QvivDataSet> data_set,
+                           const string& balloon_string)
+{
+    // The "global balloon"
+    this->balloons.add_balloon(balloon_string);
+
+    if (data_set->has_svg) {
+        // Copy balloons from the svg dataset to data
+        // Add strings to internal labels in the svg
+        data_set->svg.set_base_label_index(this->balloons.get_num_ballons());
+        for (const auto& s : data_set->svg.get_balloon_labels()) {
+            string sr(s); // replace string
+            search_and_replace(sr,"\\n","<br/>");
+            this->balloons.add_balloon(sr);
+        }
+    }
+
+    this->data_sets.push_back(data_set);
+}
