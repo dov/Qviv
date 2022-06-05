@@ -515,7 +515,10 @@ namespace svg
                 m_path.set_height_in_mm(m_height_in_mm);
             }
             if (strcmp(attr[i], "viewBox")==0)
+            {
                 parse_view_box(attr[i+1], m_view_box);
+                m_path.set_view_box(m_view_box);
+            }
         }
     }
 

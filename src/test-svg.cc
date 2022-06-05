@@ -79,6 +79,17 @@ MyApp::MyApp(int argc, char *argv[])
     auto svg_data_set = make_shared<QvivDataSet>(path);
     auto data = make_shared<QvivData>();
 
+    if (path.has_view_box()) {
+      const double *view_box = path.view_box();
+      d->w_imgv->set_scroll_area(view_box[0],view_box[1],
+                                 view_box[0]+view_box[2],view_box[1]+view_box[3]);
+    }
+    else {
+      d->w_imgv->set_scroll_area(0,0,
+                                 path.width_in_mm(),
+                                 path.height_in_mm());
+    }
+
     data->add_dataset(svg_data_set, svgfilename);
 
     d->w_imgv->set_qviv_data(data);

@@ -44,6 +44,7 @@ namespace svg
         bool tags_ignored() const { return m_tags_ignored; }
         void set_swap_red_blue(bool swap_red_blue);
         const double *view_box() const { return m_view_box; };
+        bool has_view_box() const { return m_view_box[2]>m_view_box[0]; }
         double width_in_mm() const { return m_width_in_mm; };
         double height_in_mm() const { return m_height_in_mm; };
 

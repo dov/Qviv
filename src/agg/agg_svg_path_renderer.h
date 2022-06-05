@@ -634,8 +634,16 @@ namespace svg
         double height_in_mm() const { return m_height_in_mm; }
         double width_in_pt() const { return m_width_in_mm*SVG_MM_TO_POINT; }
         double height_in_pt() const { return m_height_in_mm*SVG_MM_TO_POINT; }
+        bool has_view_box() const { return m_view_box[2]>0; }
+        const double *view_box() const { return m_view_box; };
         void set_width_in_mm(double width_in_mm) { m_width_in_mm = width_in_mm; }
         void set_height_in_mm(double height_in_mm) { m_height_in_mm = height_in_mm; }
+        void set_view_box(double *view_box) {
+            m_view_box[0] = view_box[0];
+            m_view_box[1] = view_box[1];
+            m_view_box[2] = view_box[2];
+            m_view_box[3] = view_box[3];
+        }
         void set_label_color(rgba label_color)
         {
             m_paint_by_label = true;
@@ -674,6 +682,7 @@ namespace svg
         trans_affine   m_transform;
         trans_affine   m_user_transform;
         double         m_width_in_mm, m_height_in_mm;
+        double         m_view_box[4] = {0,0,0,0};
         std::vector<gradient*> m_gradients;
         gradient*	m_cur_gradient;
         uint8_t        m_checksum_digest[MD5_DIGEST_LENGTH] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
